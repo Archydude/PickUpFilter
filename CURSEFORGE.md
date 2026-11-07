@@ -29,7 +29,7 @@ Auto loot that leaves the junk behind. Pick up only what's worth having, by item
 ```markdown
 ## Auto loot, without the junk
 
-WoW Forever drops a lot of junk. PickUp Filter loots for you and takes only what's worth having. The rest stays on the corpse and the loot window closes, so your bags stay clean without clicking every item.
+WoW Forever drops a lot of junk. PickUp Filter loots for you and takes only what's worth having. The rest stays on the corpse, so your bags stay clean.
 
 ### Rules by quality
 One row for each item quality, from grey to Legendary:
@@ -37,7 +37,11 @@ One row for each item quality, from grey to Legendary:
 - Items that don't stack and the whole drop of items that stack each get their own amount: 5 linen worth 30c each counts as 1s 50c.
 - Each quality picks its price: the **vendor price**, a **priority order** of TSM, Auctionator and vendor price, or the **highest** of them.
 
-Out of the box, grey items are picked up when a vendor pays 1s or more, white items when they're worth 1s, and everything green and better always. One click brings that back.
+Out of the box, grey and white items need to be worth 1s, and green and better are always picked up.
+
+### Gathering and appearances
+- **Gathering is never filtered:** herbs, ore, fishing and skinning are picked up whole, and so are chests and lockboxes.
+- **Appearances you haven't collected** are always picked up, even on grey gear.
 
 ### Your own lists
 **Always pick up** and **Never pick up** lists win over every other rule. Start typing an item's name and pick it from your bags, or Shift-click or drag it in.
@@ -47,9 +51,9 @@ Each character uses a whole filter of its own, or shares one with your other cha
 
 ### More choices
 - Quest items, currencies and items no one has a price for each get their own rule.
-- The most valuable items go into your bags first, so full bags leave the cheap stuff behind. When something you wanted doesn't fit, the window stays open.
-- Leave the loot window open after looting if you'd rather pick through what's left yourself.
-- An optional chat line lists what was left behind and what it was worth.
+- The most valuable items go into your bags first, so full bags leave the cheap stuff behind.
+- Leave the loot window open after looting if you'd rather pick through what's left.
+- An optional chat line lists what was left behind.
 - **Hold Shift** while looting to take everything.
 
 ### Good to know
@@ -66,11 +70,11 @@ Each character uses a whole filter of its own, or shares one with your other cha
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.0.0.zip`
+**File:** `dist\PickUpFilter-1.1.0.zip`
 
 **Display name**
 ```
-PickUp Filter 1.0.0
+PickUp Filter 1.1.0
 ```
 
 **Release type:** `Release`
@@ -79,6 +83,10 @@ PickUp Filter 1.0.0
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.1.0
+- Take everything when gathering: herbs, ore, fishing and skinning are picked up whole, and so are chests, lockboxes and other things you open. On from the start; turn it off under Other rules.
+- Gear with an appearance you haven't collected yet is always picked up, whatever its quality or price. Also on from the start, under Other rules.
+
 1.0.0
 - First release: auto loot that leaves the junk behind. Loot as usual and only what passes your rules goes into your bags. The rest stays on the corpse and the loot window closes, or stays open if you'd rather take something yourself.
 - A rules table with one row per item quality: always pick up, never pick up, or pick up when the item is worth at least an amount. Items that don't stack and the whole drop of items that stack each get their own amount.

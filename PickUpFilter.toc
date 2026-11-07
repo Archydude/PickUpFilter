@@ -2,7 +2,7 @@
 ## Title: PickUp Filter
 ## Notes: Auto loot that leaves the junk behind: picks up items by quality and price (vendor, TSM, Auctionator), with your own always and never lists. Type /puf.
 ## Author: Archdude
-## Version: 1.0.0
+## Version: 1.1.0
 ## IconTexture: Interface\Icons\INV_Misc_Bag_10
 ## Category-enUS: Inventory
 ## X-License: MIT
