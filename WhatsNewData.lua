@@ -7,7 +7,7 @@ ArchdudeWhatsNew:Register("PickUpFilter", {
 	saved = { "PickUpFilterDB" },
 	changes = {
 		{ "1.0.0",
-			"First release: auto loot that leaves the junk behind. Loot as usual and only what passes your rules goes into your bags. The rest stays on the corpse and the loot window closes.",
+			"First release: auto loot that leaves the junk behind. Loot as usual and only what passes your rules goes into your bags. The rest stays on the corpse and the loot window closes, or stays open if you'd rather take something yourself.",
 			"A rules table with one row per item quality: always pick up, never pick up, or pick up when the item is worth at least an amount. Items that don't stack and the whole drop of items that stack each get their own amount.",
 			"Each quality picks its price: vendor price, a priority order of TSM, Auctionator and vendor price, or the highest of the three.",
 			"The default filter picks up grey items the vendor pays at least 1s for, white items worth at least 1s, and everything Uncommon and better. |cffffd100Reset to default filter|r brings it back.",

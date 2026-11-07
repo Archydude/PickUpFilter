@@ -1,6 +1,6 @@
 -- PickUp Filter: the loot window
 -- When loot opens, picks up every slot the filter wants, then closes the window so the rest
--- stays behind. The game's own Auto Loot would take everything first, so the filter needs it off;
+-- stays behind (or leaves it open, when the profile says so). The game's own Auto Loot would take everything first, so the filter needs it off;
 -- holding the game's Auto Loot key (Shift by default) still has the game take everything.
 
 local _, ns = ...
@@ -29,7 +29,7 @@ local function reportLeft(left)
 end
 
 local function closeIfDone()
-	if session and not session.keepOpen and next(session.pending) == nil then
+	if session and ns.db.afterLoot == "close" and not session.keepOpen and next(session.pending) == nil then
 		CloseLoot()
 	end
 end

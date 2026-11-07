@@ -1,6 +1,6 @@
 # PickUp Filter
 
-Auto loot that leaves the junk behind. Loot as usual: PickUp Filter picks up what's worth having and leaves the rest on the corpse, then closes the loot window. You decide what counts as worth having, by item quality and price, with your own lists of items to always or never pick up.
+Auto loot that leaves the junk behind. Loot as usual: PickUp Filter picks up what's worth having and leaves the rest on the corpse, then closes the loot window (or leaves it open, if you'd rather). You decide what counts as worth having, by item quality and price, with your own lists of items to always or never pick up.
 
 Made for WoW Forever.
 
@@ -66,6 +66,7 @@ TSM and Auctionator count only while they're loaded. The options page says which
 | Currencies | Always pick up, or leave behind | Always pick up |
 | Items with no price | Pick up, or leave behind (for Check value) | Pick up |
 | Most valuable first | On or off | On |
+| Loot window afterwards | Close it, so the rest stays on the corpse, or leave it open so you can still take something yourself | Close it |
 | Say what was left behind | On or off: a chat line after looting lists what stayed behind and its value | Off |
 
 Money is always picked up.

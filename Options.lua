@@ -324,6 +324,9 @@ local function buildOtherRules(y)
 	y = choiceRow(y, "Items with no price",
 		"Items under Check value that no price source has a price for. Picking them up means nothing rare goes missing just because nobody has sold one yet.",
 		{ { "loot", "Pick up" }, { "leave", "Leave behind" } }, "noPrice")
+	y = choiceRow(y, "Loot window afterwards",
+		"Once what you want is picked up: close the loot window so the rest stays on the corpse, or leave it open so you can still take something yourself.",
+		{ { "close", "Close it" }, { "open", "Leave it open" } }, "afterLoot")
 	local money = text(content, "GameFontHighlight", "Money is always picked up.")
 	money:SetPoint("TOPLEFT", COLUMNS.quality, y - 4)
 	y = y - 26
