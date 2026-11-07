@@ -6,6 +6,7 @@
 ## IconTexture: Interface\Icons\INV_Misc_Bag_10
 ## Category-enUS: Inventory
 ## X-License: MIT
+## X-Curse-Project-ID: 1788703
 ## AddonCompartmentFunc: PickUpFilter_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: PickUpFilter_OnAddonCompartmentEnter
 ## AddonCompartmentFuncOnLeave: PickUpFilter_OnAddonCompartmentLeave
