@@ -56,6 +56,17 @@ end
 --   take   true | false
 --   reason text for the player, like "Poor: worth 3c, needs 1s"
 --   value  copper for the whole drop, or nil
+-- True when the item has an appearance the account hasn't collected yet.
+function ns.UncollectedAppearance(link)
+	local transmog = C_TransmogCollection
+	if not link or not transmog then return false end
+	local _, sourceID = transmog.GetItemInfo(link)
+	if not sourceID then return false end
+	local info = transmog.GetAppearanceInfoBySource(sourceID)
+	if info then return not info.appearanceIsCollected end
+	return not transmog.PlayerHasTransmogItemModifiedAppearance(sourceID)
+end
+
 function ns.Decide(item)
 	local db = ns.db
 	if item.kind == "money" then return true, "money" end
@@ -68,6 +79,9 @@ function ns.Decide(item)
 	if item.itemID and db.always[item.itemID] then return true, "on your always list" end
 	if item.itemID and db.never[item.itemID] then return false, "on your never list" end
 	if item.isQuest and db.quest == "always" then return true, "quest item" end
+	if db.appearances and ns.UncollectedAppearance(item.link) then
+		return true, "appearance you haven't collected"
+	end
 
 	local row = ns.QualityRow(item.quality)
 	local label = qualityName(item.quality)

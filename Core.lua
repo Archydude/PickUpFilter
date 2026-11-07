@@ -76,6 +76,8 @@ ns.DEFAULTS = {
 	noPrice = "loot",        -- "loot" | "leave": items the price rule finds no price for
 	valuableFirst = true,    -- pick up the most valuable items first
 	reportLeft = false,      -- chat line listing what was left behind
+	gathering = true,        -- take everything from herbs, ore, fishing, skinning and opened things
+	appearances = true,      -- always pick up items with an uncollected appearance
 	afterLoot = "close",     -- "close" | "open": the loot window once what's wanted is picked up
 	always = {},             -- [itemID] = true: always picked up
 	never = {},              -- [itemID] = true: always left behind

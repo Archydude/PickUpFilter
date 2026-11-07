@@ -331,6 +331,16 @@ local function buildOtherRules(y)
 	money:SetPoint("TOPLEFT", COLUMNS.quality, y - 4)
 	y = y - 26
 
+	local gather = checkbox("Take everything when gathering",
+		"Herbs, ore, fishing and skinning are picked up whole, without the rules. So are chests, lockboxes and other things you open.",
+		function() return ns.db.gathering end, function(v) ns.db.gathering = v end)
+	gather:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
+	y = y - 28
+	local looks = checkbox("Always pick up appearances you haven't collected",
+		"Gear with an appearance missing from your collection is picked up whatever its quality or price.",
+		function() return ns.db.appearances end, function(v) ns.db.appearances = v end)
+	looks:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
+	y = y - 28
 	local first = checkbox("Most valuable first",
 		"Picks up the most valuable items first, so when your bags fill up, what's left behind is the cheap stuff.",
 		function() return ns.db.valuableFirst end, function(v) ns.db.valuableFirst = v end)

@@ -66,6 +66,8 @@ TSM and Auctionator count only while they're loaded. The options page says which
 | Currencies | Always pick up, or leave behind | Always pick up |
 | Items with no price | Pick up, or leave behind (for Check value) | Pick up |
 | Most valuable first | On or off | On |
+| Take everything when gathering | On or off: herbs, ore, fishing and skinning are picked up whole, and so are chests, lockboxes and other things you open | On |
+| Always pick up appearances you haven't collected | On or off: gear with an appearance missing from your collection is picked up whatever its quality or price | On |
 | Loot window afterwards | Close it, so the rest stays on the corpse, or leave it open so you can still take something yourself | Close it |
 | Say what was left behind | On or off: a chat line after looting lists what stayed behind and its value | Off |
 
@@ -75,7 +77,7 @@ With **Most valuable first**, the most valuable items go into your bags first, s
 
 ## Item lists
 
-**Always pick up** and **Never pick up** lists win over every other rule, quest items included. To add an item, start typing its name: items in your bags that match show up under the box, so click one, or pick it with Up and Down and press Enter. You can also type an item ID or Shift-click an item into the box and press Enter, or drag an item from your bags onto the box. Each row shows the item and its ID, with a button to take it off. An item can only be on one list.
+**Always pick up** and **Never pick up** lists win over every other rule, quest items and appearances included. To add an item, start typing its name: items in your bags that match show up under the box, so click one, or pick it with Up and Down and press Enter. You can also type an item ID or Shift-click an item into the box and press Enter, or drag an item from your bags onto the box. Each row shows the item and its ID, with a button to take it off. An item can only be on one list.
 
 ## Commands
 

@@ -34,20 +34,42 @@ local function closeIfDone()
 	end
 end
 
+-- Gathering: herbs, ore, fishing, skinning, and anything else the loot comes from a cast or an
+-- object in the world for (chests, lockboxes).
+local GATHER_CAST_WINDOW = 1 -- seconds between a finished cast and the loot opening
+local lastCast = 0
+
+ns.On("UNIT_SPELLCAST_SUCCEEDED", function(unit)
+	if unit == "player" then lastCast = GetTime() end
+end)
+
+local function isGathering()
+	if IsFishingLoot and IsFishingLoot() then return true end
+	if GetTime() - lastCast <= GATHER_CAST_WINDOW then return true end
+	if GetLootSourceInfo then
+		for slot = 1, GetNumLootItems() do
+			local guid = GetLootSourceInfo(slot)
+			if type(guid) == "string" and guid:find("^GameObject") then return true end
+		end
+	end
+	return false
+end
+
 ns.On("LOOT_READY", function(autoLoot)
 	-- The game is picking up everything itself: its Auto Loot is on, or its Auto Loot key is held.
 	if autoLoot or session then return end
 	session = { pending = {} }
+	local takeAll = not ns.char.enabled or (ns.db.gathering and isGathering())
 
 	local take, left = {}, {}
 	for slot = 1, GetNumLootItems() do
 		local item = ns.SlotItem(slot)
 		if item.kind ~= "none" and not item.locked then
 			local wanted, value
-			if ns.char.enabled then
-				wanted, _, value = ns.Decide(item)
-			else
+			if takeAll then
 				wanted = true
+			else
+				wanted, _, value = ns.Decide(item)
 			end
 			local entry = { slot = slot, item = item, value = value }
 			table.insert(wanted and take or left, entry)
