@@ -341,6 +341,11 @@ local function buildOtherRules(y)
 		function() return ns.db.appearances end, function(v) ns.db.appearances = v end)
 	looks:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
 	y = y - 28
+	local reagents = checkbox("Always pick up crafting reagents",
+		"Anything a profession can craft with is picked up whatever its quality or price, like cloth, herbs and leather.",
+		function() return ns.db.reagents end, function(v) ns.db.reagents = v end)
+	reagents:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
+	y = y - 28
 	local first = checkbox("Most valuable first",
 		"Picks up the most valuable items first, so when your bags fill up, what's left behind is the cheap stuff.",
 		function() return ns.db.valuableFirst end, function(v) ns.db.valuableFirst = v end)

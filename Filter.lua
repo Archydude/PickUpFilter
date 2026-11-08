@@ -82,6 +82,7 @@ function ns.Decide(item)
 	if db.appearances and ns.UncollectedAppearance(item.link) then
 		return true, "appearance you haven't collected"
 	end
+	if db.reagents and item.reagent then return true, "crafting reagent" end
 
 	local row = ns.QualityRow(item.quality)
 	local label = qualityName(item.quality)

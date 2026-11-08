@@ -39,18 +39,19 @@ One row for each item quality, from grey to Legendary:
 
 Out of the box, grey and white items need to be worth 1s, and green and better are always picked up.
 
-### Gathering and appearances
+### Gathering, appearances and reagents
 - **Gathering is never filtered:** herbs, ore, fishing and skinning are picked up whole, and so are chests and lockboxes.
 - **Appearances you haven't collected** are always picked up, even on grey gear.
+- **Crafting reagents** can be always picked up too, whatever their price.
 
 ### Your own lists
-**Always pick up** and **Never pick up** lists win over every other rule. Start typing an item's name and pick it from your bags, or Shift-click or drag it in.
+**Always pick up** and **Never pick up** lists win over every other rule. Add items by typing part of their name.
 
 ### Profiles
 Each character uses a whole filter of its own, or shares one with your other characters.
 
 ### More choices
-- Quest items, currencies and items no one has a price for each get their own rule.
+- Quest items, currencies and unpriced items get their own rules.
 - The most valuable items go into your bags first, so full bags leave the cheap stuff behind.
 - Leave the loot window open after looting if you'd rather pick through what's left.
 - An optional chat line lists what was left behind.
@@ -70,11 +71,11 @@ Each character uses a whole filter of its own, or shares one with your other cha
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.1.0.zip`
+**File:** `dist\PickUpFilter-1.2.0.zip`
 
 **Display name**
 ```
-PickUp Filter 1.1.0
+PickUp Filter 1.2.0
 ```
 
 **Release type:** `Release`
@@ -83,6 +84,9 @@ PickUp Filter 1.1.0
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.2.0
+- New option under Other rules: always pick up crafting reagents, like cloth, herbs, leather and ore, whatever their quality or price. Your Never pick up list still wins. Off from the start.
+
 1.1.0
 - Take everything when gathering: herbs, ore, fishing and skinning are picked up whole, and so are chests, lockboxes and other things you open. On from the start; turn it off under Other rules.
 - Gear with an appearance you haven't collected yet is always picked up, whatever its quality or price. Also on from the start, under Other rules.

@@ -78,6 +78,7 @@ ns.DEFAULTS = {
 	reportLeft = false,      -- chat line listing what was left behind
 	gathering = true,        -- take everything from herbs, ore, fishing, skinning and opened things
 	appearances = true,      -- always pick up items with an uncollected appearance
+	reagents = false,        -- always pick up crafting reagents
 	afterLoot = "close",     -- "close" | "open": the loot window once what's wanted is picked up
 	always = {},             -- [itemID] = true: always picked up
 	never = {},              -- [itemID] = true: always left behind

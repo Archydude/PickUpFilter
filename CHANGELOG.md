@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.0
+- New option under Other rules: always pick up crafting reagents, like cloth, herbs, leather and ore, whatever their quality or price. Your Never pick up list still wins. Off from the start.
+
 ## 1.1.0
 - Take everything when gathering: herbs, ore, fishing and skinning are picked up whole, and so are chests, lockboxes and other things you open. On from the start; turn it off under Other rules.
 - Gear with an appearance you haven't collected yet is always picked up, whatever its quality or price. Also on from the start, under Other rules.
