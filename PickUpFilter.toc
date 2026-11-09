@@ -2,7 +2,7 @@
 ## Title: PickUp Filter
 ## Notes: Auto loot that leaves the junk behind: picks up items by quality and price (vendor, TSM, Auctionator), with your own always and never lists. Type /puf.
 ## Author: Archdude
-## Version: 1.2.0
+## Version: 1.3.0
 ## IconTexture: Interface\Icons\INV_Misc_Bag_10
 ## Category-enUS: Inventory
 ## X-License: MIT
@@ -11,7 +11,7 @@
 ## AddonCompartmentFuncOnEnter: PickUpFilter_OnAddonCompartmentEnter
 ## AddonCompartmentFuncOnLeave: PickUpFilter_OnAddonCompartmentLeave
 ## SavedVariables: PickUpFilterDB, PickUpFilterWhatsNew
-## OptionalDeps: LibStub, CallbackHandler-1.0, LibDataBroker-1.1, LibDBIcon-1.0, TradeSkillMaster, Auctionator
+## OptionalDeps: LibStub, CallbackHandler-1.0, LibDataBroker-1.1, LibDBIcon-1.0, TradeSkillMaster, Auctionator, AllTheThings
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua

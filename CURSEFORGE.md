@@ -34,15 +34,16 @@ WoW Forever drops a lot of junk. PickUp Filter loots for you and takes only what
 ### Rules by quality
 One row for each item quality, from grey to Legendary:
 - **Always pick up**, **never pick up**, or pick up when it's **worth at least** an amount you set, like `1s` or `2g 50s`.
-- Items that don't stack and the whole drop of items that stack each get their own amount: 5 linen worth 30c each counts as 1s 50c.
+- Stackables count the whole drop: 5 linen at 30c each is worth 1s 50c.
 - Each quality picks its price: the **vendor price**, a **priority order** of TSM, Auctionator and vendor price, or the **highest** of them.
 
 Out of the box, grey and white items need to be worth 1s, and green and better are always picked up.
 
-### Gathering, appearances and reagents
-- **Gathering is never filtered:** herbs, ore, fishing and skinning are picked up whole, and so are chests and lockboxes.
-- **Appearances you haven't collected** are always picked up, even on grey gear.
-- **Crafting reagents** can be always picked up too, whatever their price.
+### Always picked up
+- **Gathering is never filtered:** herbs, ore, fish, skins, chests and lockboxes come in whole.
+- **Appearances you haven't collected**, even on grey gear.
+- **Crafting reagents** too, if you like.
+- **What All The Things says you need**, when you have it: anything missing from your collection or needed to get something.
 
 ### Your own lists
 **Always pick up** and **Never pick up** lists win over every other rule. Add items by typing part of their name.
@@ -59,7 +60,7 @@ Each character uses a whole filter of its own, or shares one with your other cha
 
 ### Good to know
 - PickUp Filter does the auto looting itself, so the game's own Auto Loot has to be off. It offers to turn it off for you.
-- Works with **TradeSkillMaster** and **Auctionator**. Without them, vendor prices are used.
+- Works with **TradeSkillMaster**, **Auctionator** and **All The Things**. Without them, vendor prices are used.
 - **/puf** opens the options. **/puf check [item]** says whether an item would be picked up, and why.
 - Made for **WoW Forever**.
 
@@ -71,11 +72,11 @@ Each character uses a whole filter of its own, or shares one with your other cha
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.2.0.zip`
+**File:** `dist\PickUpFilter-1.3.0.zip`
 
 **Display name**
 ```
-PickUp Filter 1.2.0
+PickUp Filter 1.3.0
 ```
 
 **Release type:** `Release`
@@ -84,6 +85,9 @@ PickUp Filter 1.2.0
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.3.0
+- New option under Other rules: always pick up what **All The Things** says you need. Items it counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price, following your All The Things settings. On from the start; it does nothing without All The Things.
+
 1.2.0
 - New option under Other rules: always pick up crafting reagents, like cloth, herbs, leather and ore, whatever their quality or price. Your Never pick up list still wins. Off from the start.
 

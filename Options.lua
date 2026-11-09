@@ -346,6 +346,11 @@ local function buildOtherRules(y)
 		function() return ns.db.reagents end, function(v) ns.db.reagents = v end)
 	reagents:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
 	y = y - 28
+	local att = checkbox("Always pick up what All The Things says you need",
+		"Items All The Things counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price. Follows your All The Things settings. Needs All The Things.",
+		function() return ns.db.att end, function(v) ns.db.att = v end)
+	att:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
+	y = y - 28
 	local first = checkbox("Most valuable first",
 		"Picks up the most valuable items first, so when your bags fill up, what's left behind is the cheap stuff.",
 		function() return ns.db.valuableFirst end, function(v) ns.db.valuableFirst = v end)

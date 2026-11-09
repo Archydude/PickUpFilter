@@ -67,6 +67,23 @@ function ns.UncollectedAppearance(link)
 	return not transmog.PlayerHasTransmogItemModifiedAppearance(sourceID)
 end
 
+-- All The Things: loaded, and offering its lookup to other addons.
+function ns.ATTLoaded()
+	local att = _G.AllTheThings
+	return type(att) == "table" and type(att.GetLinkReference) == "function"
+end
+
+-- True when All The Things counts the item as something you still need: not collected itself,
+-- or holding or buying things you haven't collected, under your All The Things settings.
+function ns.ATTNeeds(link)
+	if not link or not ns.ATTLoaded() then return false end
+	local ok, group = pcall(_G.AllTheThings.GetLinkReference, link)
+	if not ok or type(group) ~= "table" then return false end
+	if group.collectible and not group.collected then return true end
+	if (group.total or 0) > (group.progress or 0) then return true end
+	return (group.costTotal or 0) > 0
+end
+
 function ns.Decide(item)
 	local db = ns.db
 	if item.kind == "money" then return true, "money" end
@@ -83,6 +100,7 @@ function ns.Decide(item)
 		return true, "appearance you haven't collected"
 	end
 	if db.reagents and item.reagent then return true, "crafting reagent" end
+	if db.att and ns.ATTNeeds(item.link) then return true, "All The Things says you need it" end
 
 	local row = ns.QualityRow(item.quality)
 	local label = qualityName(item.quality)
