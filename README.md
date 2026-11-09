@@ -35,7 +35,7 @@ The options page (`/puf`) has a table with a row for each item quality: Poor, Co
 | Action | **Check value**, **Always pick up** or **Never pick up** |
 | Price | **Vendor price**, **Priority order** or **Highest price** (for Check value) |
 | Single item | What an item that doesn't stack has to be worth to be picked up |
-| Whole stack | What the whole drop of an item that stacks has to be worth: 5 of an item worth 30c each are worth 1s 50c |
+| Whole stack | What a full stack of an item that stacks has to be worth, however many dropped: one cloth worth 30c that stacks to 20 is worth 6s |
 
 Amounts are typed like `1g 20s 5c`, `50s` or `25c`. Clear a box to put it back to the default filter's amount.
 
@@ -43,8 +43,8 @@ The default filter:
 
 | Quality | Action | Price | Single item | Whole stack |
 |---|---|---|---|---|
-| Poor (grey) | Check value | Vendor price | 1s | 1s |
-| Common (white) | Check value | Priority order | 1s | 1s |
+| Poor (grey) | Check value | Vendor price | 1s | 5s |
+| Common (white) | Check value | Priority order | 1s | 5s |
 | Uncommon and better | Always pick up | | | |
 
 **Reset to default filter** puts the table back to this. Your item lists and other rules stay as they are.
@@ -54,7 +54,7 @@ The default filter:
 - **Vendor price:** what a vendor pays.
 - **Priority order:** the first source with a price for the item, in the order you set. The default is TSM, then Auctionator, then vendor price. Set a place to Nothing to skip it.
 - **Highest price:** the highest of TSM, Auctionator and vendor price.
-- **TSM price:** market value (default), lowest auction right now, historical price, or region market average.
+- **TSM price:** market value (default), lowest auction right now, historical price, region market average (the average of every realm's market value), or region sale average (what it actually sells for across the region).
 
 TSM and Auctionator count only while they're loaded. The options page says which ones are.
 
@@ -71,7 +71,7 @@ TSM and Auctionator count only while they're loaded. The options page says which
 | Always pick up crafting reagents | On or off: anything a profession can craft with is picked up whatever its quality or price, like cloth, herbs and leather | Off |
 | Always pick up what All The Things says you need | On or off: items **All The Things** counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price. Follows your All The Things settings, and does nothing without it | On |
 | Loot window afterwards | Close it, so the rest stays on the corpse, or leave it open so you can still take something yourself | Close it |
-| Say what was left behind | On or off: a chat line after looting lists what stayed behind and its value | Off |
+| Say what was left behind | On or off: a chat line after looting lists what stayed behind, its value and which price that was | Off |
 
 Money is always picked up.
 

@@ -22,7 +22,11 @@ local function reportLeft(left)
 		local item = entry.item
 		local text = item.link or item.name or "?"
 		if (item.count or 1) > 1 then text = text .. " x" .. item.count end
-		if entry.value then text = text .. " (" .. ns.Money(entry.value) .. ")" end
+		if entry.value then
+			local worth = ns.Money(entry.value)
+			if item.stackable then worth = "stack of " .. item.maxStack .. ": " .. worth end
+			text = text .. " (" .. worth .. (entry.priceName and ", " .. entry.priceName or "") .. ")"
+		end
 		parts[#parts + 1] = text
 	end
 	ns.Print("left behind: " .. table.concat(parts, ", "))
@@ -65,13 +69,13 @@ ns.On("LOOT_READY", function(autoLoot)
 	for slot = 1, GetNumLootItems() do
 		local item = ns.SlotItem(slot)
 		if item.kind ~= "none" and not item.locked then
-			local wanted, value
+			local wanted, value, priceName
 			if takeAll then
 				wanted = true
 			else
-				wanted, _, value = ns.Decide(item)
+				wanted, _, value, priceName = ns.Decide(item)
 			end
-			local entry = { slot = slot, item = item, value = value }
+			local entry = { slot = slot, item = item, value = value, priceName = priceName }
 			table.insert(wanted and take or left, entry)
 		end
 	end

@@ -44,14 +44,16 @@ function ns.QualityRow(quality)
 end
 
 local SILVER = 100
+local STACK = 5 * SILVER -- a full stack, so it starts higher than a single item
+local OLD_STACK = SILVER -- the Whole stack default while stackables were valued by what dropped
 
 -- One row of the rules table:
 --   action  "always" | "never" | "value" (picked up when worth at least the threshold)
 --   price   "vendor" | "priority" | "highest", for "value"
 --   single  copper a non-stackable item has to be worth
---   stack   copper the whole drop of a stackable item has to be worth
+--   stack   copper a full stack of a stackable item has to be worth
 local function row(action, price)
-	return { action = action, price = price, single = SILVER, stack = SILVER }
+	return { action = action, price = price, single = SILVER, stack = STACK }
 end
 
 -- The default filter. "Reset to default filter" puts the rules table back to this.
@@ -97,6 +99,7 @@ local GLOBAL_DEFAULTS = {
 	chars = {},              -- ["Name-Realm"] = the character's settings
 	minimap = { hide = false, minimapPos = 290 },
 	autoLootAsked = false,   -- asked once whether to turn off the game's Auto Loot
+	stackRules = 0,          -- 1 once Whole stack amounts were moved to full-stack values
 }
 
 ns.DEFAULT_PROFILE = "Default"
@@ -152,6 +155,16 @@ local function load()
 		if GLOBAL_DEFAULTS[key] == nil then saved[key] = nil end
 	end
 	for _, profile in pairs(saved.profiles) do ns.CleanProfile(profile) end
+	-- Stackables used to be valued by what dropped, with a Whole stack default of 1s. Now a full
+	-- stack counts, so rows still on that old default move to the new one.
+	if saved.stackRules < 1 then
+		for _, profile in pairs(saved.profiles) do
+			for _, rule in pairs(profile.quality) do
+				if rule.stack == OLD_STACK then rule.stack = STACK end
+			end
+		end
+		saved.stackRules = 1
+	end
 	if not next(saved.profiles) then saved.profiles[ns.DEFAULT_PROFILE] = ns.NewProfileSettings() end
 
 	saved.chars[ns.CHAR_KEY] = saved.chars[ns.CHAR_KEY] or {}

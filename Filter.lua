@@ -18,6 +18,7 @@ function ns.ItemFromLink(link, count)
 		quality = quality,
 		count = count or 1,
 		stackable = (stackCount or 1) > 1,
+		maxStack = stackCount or 1,
 		sellPrice = sellPrice,
 		reagent = isCraftingReagent,
 		known = name ~= nil,
@@ -51,11 +52,11 @@ local function qualityName(quality)
 	return row and row.name or "Common"
 end
 
--- Whether `item` (from ns.SlotItem or ns.ItemFromLink) is picked up, why, and what the whole drop is
+-- Whether `item` (from ns.SlotItem or ns.ItemFromLink) is picked up, why, and what it is
 -- worth when the filter priced it.
 --   take   true | false
 --   reason text for the player, like "Poor: worth 3c, needs 1s"
---   value  copper for the whole drop, or nil
+--   value  copper for one item, or a full stack of one that stacks; or nil
 -- True when the item has an appearance the account hasn't collected yet.
 function ns.UncollectedAppearance(link)
 	local transmog = C_TransmogCollection
@@ -108,19 +109,20 @@ function ns.Decide(item)
 	if row.action == "never" then return false, label .. ": never picked up" end
 
 	-- Without the item's details there's no vendor price or stack size to go on.
-	local each = item.known and ns.ItemPrice(item, row.price)
+	local each, source
+	if item.known then each, source = ns.ItemPrice(item, row.price) end
 	if not each then
 		if db.noPrice == "leave" then return false, label .. ": no price, left behind" end
 		return true, label .. ": no price, picked up"
 	end
 
-	local count = item.count or 1
-	local value = each * count
+	-- Items that stack are worth what a full stack of them would be, however many dropped.
+	local value = item.stackable and each * item.maxStack or each
 	local needed = item.stackable and row.stack or row.single
-	local what = item.stackable and (count > 1 and "the drop of " .. count .. " is worth " or "the drop is worth ")
-		or "worth "
-	local text = label .. ": " .. what .. ns.MoneyText(value) .. ", needs " .. ns.MoneyText(needed)
-	return value >= needed, text, value
+	local what = item.stackable and "a stack of " .. item.maxStack .. " is worth " or "worth "
+	local priceName = ns.PriceLabel(source)
+	local text = label .. ": " .. what .. ns.MoneyText(value) .. " (" .. priceName .. "), needs " .. ns.MoneyText(needed)
+	return value >= needed, text, value, priceName
 end
 
 ---------------------------------------------------------------------------

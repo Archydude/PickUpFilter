@@ -34,10 +34,10 @@ WoW Forever drops a lot of junk. PickUp Filter loots for you and takes only what
 ### Rules by quality
 One row for each item quality, from grey to Legendary:
 - **Always pick up**, **never pick up**, or pick up when it's **worth at least** an amount you set, like `1s` or `2g 50s`.
-- Stackables count the whole drop: 5 linen at 30c each is worth 1s 50c.
+- Stackables count as a full stack: one linen at 30c, in stacks of 20, is worth 6s.
 - Each quality picks its price: the **vendor price**, a **priority order** of TSM, Auctionator and vendor price, or the **highest** of them.
 
-Out of the box, grey and white items need to be worth 1s, and green and better are always picked up.
+Out of the box, grey and white items need to be worth 1s, or 5s for a full stack, and green and better are always picked up.
 
 ### Always picked up
 - **Gathering is never filtered:** herbs, ore, fish, skins, chests and lockboxes come in whole.
@@ -72,11 +72,11 @@ Each character uses a whole filter of its own, or shares one with your other cha
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.3.0.zip`
+**File:** `dist\PickUpFilter-1.4.0.zip`
 
 **Display name**
 ```
-PickUp Filter 1.3.0
+PickUp Filter 1.4.0
 ```
 
 **Release type:** `Release`
@@ -85,6 +85,11 @@ PickUp Filter 1.3.0
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.4.0
+- Items that stack are now judged by what a full stack would be worth, however many dropped: one cloth worth 30c that stacks to 20 counts as 6s. The default **Whole stack** amount is now 5s, and rules still on the old 1s default move to 5s.
+- New TSM price: **Region sale average**, what an item actually sells for across your region.
+- The "left behind" chat line and `/puf check` now say which price they used, like "TSM market value" or "vendor price".
+
 1.3.0
 - New option under Other rules: always pick up what **All The Things** says you need. Items it counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price, following your All The Things settings. On from the start; it does nothing without All The Things.
 

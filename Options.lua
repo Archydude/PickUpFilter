@@ -221,13 +221,13 @@ local function buildRulesTable(y)
 	end)
 	reset:SetPoint("TOPLEFT", COLUMNS.quality, y - 4)
 	tooltip(reset, "Reset to default filter",
-		"Poor items: picked up when the vendor pays at least 1s. Common items: picked up when worth at least 1s, by the priority order. Uncommon and better: always picked up. "
+		"Poor items: picked up when the vendor pays at least 1s, or 5s for a full stack. Common items: the same amounts, by the priority order. Uncommon and better: always picked up. "
 			.. "Your item lists and the other rules stay as they are.")
 	y = y - 36
 
 	local help = text(content, "GameFontHighlight",
 		"|cffffd100Check value|r picks up an item when it's worth at least the amount. |cffffd100Single item|r is for items that don't stack. "
-			.. "|cffffd100Whole stack|r is for the whole drop of an item that stacks: 5 of an item worth 30c each are worth 1s 50c.",
+			.. "|cffffd100Whole stack|r is for items that stack, valued as a full stack however many dropped: one cloth worth 30c in stacks of 20 is worth 6s.",
 		WIDTH - 30)
 	help:SetPoint("TOPLEFT", COLUMNS.quality, y)
 	return y - help:GetStringHeight() - 24

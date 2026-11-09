@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0
+- Items that stack are now judged by what a full stack would be worth, however many dropped: one cloth worth 30c that stacks to 20 counts as 6s. The default **Whole stack** amount is now 5s, and rules still on the old 1s default move to 5s.
+- New TSM price: **Region sale average**, what an item actually sells for across your region.
+- The "left behind" chat line and `/puf check` now say which price they used, like "TSM market value" or "vendor price".
+
 ## 1.3.0
 - New option under Other rules: always pick up what **All The Things** says you need. Items it counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price, following your All The Things settings. On from the start; it does nothing without All The Things.
 

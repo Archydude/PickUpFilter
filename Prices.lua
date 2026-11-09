@@ -12,12 +12,13 @@ ns.SOURCES = {
 ns.SOURCE_NAMES = { none = "Nothing" }
 for _, source in ipairs(ns.SOURCES) do ns.SOURCE_NAMES[source.key] = source.name end
 
--- TSM prices a player can pick.
+-- TSM prices a player can pick. `label` names the price in chat lines.
 ns.TSM_SOURCES = {
-	{ key = "dbmarket", name = "Market value (recommended)" },
-	{ key = "dbminbuyout", name = "Lowest auction right now" },
-	{ key = "dbhistorical", name = "Historical price" },
-	{ key = "dbregionmarketavg", name = "Region market average" },
+	{ key = "dbmarket", name = "Market value (recommended)", label = "market value" },
+	{ key = "dbminbuyout", name = "Lowest auction right now", label = "lowest auction" },
+	{ key = "dbhistorical", name = "Historical price", label = "historical price" },
+	{ key = "dbregionmarketavg", name = "Region market average", label = "region market average" },
+	{ key = "dbregionsaleavg", name = "Region sale average", label = "region sale average" },
 }
 
 local function positive(ok, value)
@@ -58,6 +59,18 @@ end
 
 local function vendorPrice(item)
 	if item.sellPrice and item.sellPrice > 0 then return item.sellPrice end
+end
+
+-- Which price a source key from ns.ItemPrice stands for, for chat lines: "TSM market value".
+function ns.PriceLabel(source)
+	if source == "tsm" then
+		for _, tsm in ipairs(ns.TSM_SOURCES) do
+			if tsm.key == ns.db.tsmSource then return "TSM " .. tsm.label end
+		end
+		return "TSM"
+	end
+	if source == "vendor" then return "vendor price" end
+	return ns.SOURCE_NAMES[source] or source
 end
 
 local GETTERS = { tsm = tsmPrice, auctionator = auctionatorPrice, vendor = vendorPrice }
