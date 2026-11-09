@@ -373,18 +373,13 @@ end
 
 local listBoxes = {} -- the two add boxes, for Shift-clicked links
 
-local function sortedIDs(list)
-	local ids = {}
-	for id in pairs(list) do ids[#ids + 1] = id end
-	table.sort(ids)
-	return ids
-end
-
 ---------------------------------------------------------------------------
--- Bag search: items in your bags whose names match what's typed in a list box
+-- Item search: items whose names match what's typed in a list box, from your bags first, then from
+-- the whole game
 ---------------------------------------------------------------------------
 
-local MAX_MATCHES = 8
+local VISIBLE_MATCHES = 8 -- rows shown at once; the mouse wheel and Up/Down scroll through the rest
+local MAX_MATCHES = 200   -- matches kept for scrolling
 local MATCH_HEIGHT = 22
 
 -- The item name in a link, without the brackets and any icon inside them.
@@ -421,13 +416,78 @@ local function searchBags(typed, skip)
 	return found
 end
 
+-- Every item in the game (Data\Items.lua), read into lists the first time it's searched.
+local allItems
+
+local function loadAllItems()
+	if allItems then return allItems end
+	allItems = { ids = {}, qualities = {}, names = {}, lower = {}, index = {} }
+	local count = 0
+	for id, quality, name in (ns.ITEM_NAMES or ""):gmatch("(%d+)\t(%d+)\t([^\n]+)\n") do
+		count = count + 1
+		allItems.ids[count] = tonumber(id)
+		allItems.qualities[count] = tonumber(quality)
+		allItems.names[count] = name
+		allItems.lower[count] = name:lower()
+		allItems.index[tonumber(id)] = count
+	end
+	ns.ITEM_NAMES = nil -- the lists hold it now
+	return allItems
+end
+
+-- How many letters to type before the whole game is searched, not just your bags.
+local MIN_ALL_ITEMS = 2
+
+-- Items anywhere in the game whose names contain `typed`, names that start with it first, up to `limit`,
+-- without the ones in `skip` or `seen` ([itemID] = true).
+local function searchAllItems(typed, skip, seen, limit)
+	local items = loadAllItems()
+	typed = typed:lower()
+	local found = {}
+	for index = 1, #items.ids do
+		local id = items.ids[index]
+		local at = not skip[id] and not seen[id] and items.lower[index]:find(typed, 1, true)
+		if at then found[#found + 1] = { index = index, starts = at == 1 } end
+	end
+	table.sort(found, function(a, b)
+		if a.starts ~= b.starts then return a.starts end
+		return items.names[a.index] < items.names[b.index]
+	end)
+	local matches = {}
+	for n = 1, math.min(limit, #found) do
+		local index = found[n].index
+		local id = items.ids[index]
+		-- Icon and the game's own name are looked up once the row is drawn (see drawSearch).
+		matches[n] = { itemID = id, name = items.names[index], quality = items.qualities[index], fromGame = true }
+	end
+	return matches
+end
+
 -- One list of matches, shared by both boxes, drawn over the options window (the page's own scroll
 -- area would cut it off).
-local search = { rows = {}, matches = {}, selected = 1 }
+--   matches   every match, bags first; offset is how many are scrolled past; selected is a match index
+local search = { rows = {}, matches = {}, selected = 1, offset = 0 }
+local drawSearch
+
+-- Scrolls so the first shown match is `offset` (kept in range), then redraws.
+local function scrollTo(offset)
+	search.offset = math.max(0, math.min(offset, #search.matches - VISIBLE_MATCHES))
+	drawSearch()
+end
 
 local function searchFrame()
 	if search.frame then return search.frame end
 	local f = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+	f:EnableMouseWheel(true)
+	f:SetScript("OnMouseWheel", function(_, delta) scrollTo(search.offset - delta) end)
+	-- A bar on the right showing where in the list you are, when there's more than fits.
+	f.track = f:CreateTexture(nil, "ARTWORK")
+	f.track:SetColorTexture(1, 1, 1, 0.08)
+	f.track:SetWidth(4)
+	f.track:SetPoint("TOPRIGHT", -6, -6)
+	f.thumb = f:CreateTexture(nil, "OVERLAY")
+	f.thumb:SetColorTexture(1, 0.82, 0, 0.7)
+	f.thumb:SetWidth(4)
 	f:SetFrameStrata("FULLSCREEN_DIALOG")
 	f:SetToplevel(true)
 	f:SetBackdrop({
@@ -472,6 +532,7 @@ local function matchRow(index)
 	r.name:SetPoint("LEFT", r.icon, "RIGHT", 6, 0)
 	r.name:SetWordWrap(false)
 	r:SetScript("OnClick", function(self) pick(search.matches[self.index]) end)
+	r:SetScript("OnMouseWheel", function(_, delta) scrollTo(search.offset - delta) end)
 	r:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 		GameTooltip:SetItemByID(search.matches[self.index].itemID)
@@ -482,10 +543,19 @@ local function matchRow(index)
 	return r
 end
 
-local function drawSearch()
+function drawSearch()
 	local f = searchFrame()
-	for index, match in ipairs(search.matches) do
-		local r = matchRow(index)
+	local shown = math.min(VISIBLE_MATCHES, #search.matches)
+	for row = 1, shown do
+		local index = search.offset + row
+		local match = search.matches[index]
+		if match.fromGame then
+			-- The game's own name when it has the item already, so it's in the player's language.
+			match.name = C_Item.GetItemNameByID(match.itemID) or match.name
+			match.icon = C_Item.GetItemIconByID(match.itemID)
+			match.fromGame = nil
+		end
+		local r = matchRow(row)
 		r.index = index
 		r.icon:SetTexture(match.icon)
 		local color = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[match.quality]
@@ -493,8 +563,20 @@ local function drawSearch()
 		r.selected:SetShown(index == search.selected)
 		r:Show()
 	end
-	for index = #search.matches + 1, #search.rows do search.rows[index]:Hide() end
-	f:SetSize(272, 12 + #search.matches * MATCH_HEIGHT)
+	for row = shown + 1, #search.rows do search.rows[row]:Hide() end
+	local listHeight = shown * MATCH_HEIGHT
+	local more = #search.matches > VISIBLE_MATCHES
+	f.track:SetShown(more)
+	f.thumb:SetShown(more)
+	if more then
+		f.track:SetHeight(listHeight)
+		local thumbHeight = math.max(12, listHeight * VISIBLE_MATCHES / #search.matches)
+		local room = listHeight - thumbHeight
+		f.thumb:SetHeight(thumbHeight)
+		f.thumb:ClearAllPoints()
+		f.thumb:SetPoint("TOPRIGHT", -6, -6 - room * search.offset / (#search.matches - VISIBLE_MATCHES))
+	end
+	f:SetSize(more and 280 or 272, 12 + listHeight)
 	f:ClearAllPoints()
 	f:SetPoint("TOPLEFT", search.box, "BOTTOMLEFT", -6, -2)
 	f:Show()
@@ -507,45 +589,85 @@ local function updateSearch(box)
 		if search.box == box then hideSearch() end
 		return
 	end
-	local found = searchBags(typed, ns.db[box.listKey])
+	local skip = ns.db[box.listKey]
+	local found = searchBags(typed, skip)
+	for index = MAX_MATCHES + 1, #found do found[index] = nil end
+	if #found < MAX_MATCHES and #typed >= MIN_ALL_ITEMS then
+		local seen = {}
+		for _, match in ipairs(found) do seen[match.itemID] = true end
+		for _, match in ipairs(searchAllItems(typed, skip, seen, MAX_MATCHES - #found)) do
+			found[#found + 1] = match
+		end
+	end
 	if #found == 0 then
 		if search.box == box then hideSearch() end
 		return
 	end
-	for index = MAX_MATCHES + 1, #found do found[index] = nil end
-	search.box, search.matches, search.selected = box, found, 1
+	search.box, search.matches, search.selected, search.offset = box, found, 1, 0
 	drawSearch()
 end
 
 local function moveSelection(box, step)
 	if search.box ~= box or #search.matches == 0 then return end
 	search.selected = (search.selected - 1 + step) % #search.matches + 1
-	drawSearch()
+	-- Keep the selected match in view.
+	if search.selected <= search.offset then
+		scrollTo(search.selected - 1)
+	elseif search.selected > search.offset + VISIBLE_MATCHES then
+		scrollTo(search.selected - VISIBLE_MATCHES)
+	else
+		drawSearch()
+	end
 end
 
-local function buildList(x, y, key, title, help)
-	local fs = text(content, "GameFontNormal", title)
-	fs:SetPoint("TOPLEFT", x, y)
-	y = y - 22
+local LIST_TITLES = { always = "Always pick up", never = "Never pick up" }
+local OTHER_LIST = { always = "never", never = "always" }
+local LIST_HELP = {
+	always = "Items picked up whatever they're worth.",
+	never = "Items left behind whatever they're worth, quest items included.",
+}
+local ADD_HELP = "Type part of an item's name and pick it from the list (your bags first, then the whole game), or type an item ID, Shift-click an item, or drag one here from your bags."
 
-	local box = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
+local function listCount(key)
+	local n = 0
+	for _ in pairs(ns.db[key]) do n = n + 1 end
+	return n
+end
+
+local function itemsText(n)
+	return n == 1 and "1 item" or n .. " items"
+end
+
+-- An item's name and quality: the game's own when it has the item, otherwise from the list of every
+-- item. No name when neither has it yet.
+local function itemInfo(id)
+	local name, _, quality = C_Item.GetItemInfo(id)
+	if name then return name, quality end
+	local items = loadAllItems()
+	local index = items.index[id]
+	if index then return items.names[index], items.qualities[index] end
+end
+
+-- A box that adds items to the list named by `box.listKey`: pick a match for a typed name, or type an
+-- item ID, Shift-click an item into it, or drag one onto it.
+local function addBox(parent, key)
+	local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
 	box:SetSize(200, 20)
 	box:SetAutoFocus(false)
 	box:SetFontObject("GameFontHighlight")
-	box:SetPoint("TOPLEFT", x + 6, y)
 	box.listKey = key
 	listBoxes[#listBoxes + 1] = box
 	local function add()
 		local typed = strtrim(box:GetText())
 		local id = ns.ItemIDFrom(typed)
 		if id then
-			ns.SetListed(id, key)
+			ns.SetListed(id, box.listKey)
 			box:SetText("")
 		elseif search.box == box and search.matches[search.selected] then
 			pick(search.matches[search.selected])
 			return
 		elseif typed ~= "" then
-			ns.Print("nothing in your bags is called that. Type an item ID or Shift-click the item instead.")
+			ns.Print("no item is called that. Type an item ID or Shift-click the item instead.")
 		end
 		hideSearch()
 		box:ClearFocus()
@@ -570,86 +692,286 @@ local function buildList(x, y, key, title, help)
 		local kind, itemID = GetCursorInfo()
 		if kind == "item" and itemID then
 			ClearCursor()
-			ns.SetListed(itemID, key)
+			ns.SetListed(itemID, self.listKey)
 		end
 		self:ClearFocus()
 	end)
-	tooltip(box, title, help .. "\n\nType part of an item's name to pick it from your bags, or type an item ID, Shift-click an item, or drag one here from your bags.")
-	local addButton = button(content, "Add", 60, add)
+	box:HookScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:SetText("Add to " .. LIST_TITLES[self.listKey], 1, 1, 1)
+		GameTooltip:AddLine(LIST_HELP[self.listKey], nil, nil, nil, true)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine(ADD_HELP, nil, nil, nil, true)
+		GameTooltip:Show()
+	end)
+	box:HookScript("OnLeave", function() GameTooltip:Hide() end)
+	local addButton = button(parent, "Add", 60, add)
 	addButton:SetPoint("LEFT", box, "RIGHT", 6, 0)
-	y = y - 28
+	return box
+end
 
-	local rows = {}
-	local listTop = y
-	local function row(index)
-		if rows[index] then return rows[index] end
-		local r = CreateFrame("Frame", nil, content)
-		r:SetSize(280, LIST_ROW_HEIGHT)
-		r:SetPoint("TOPLEFT", x, listTop - (index - 1) * LIST_ROW_HEIGHT)
-		r:EnableMouse(true)
-		r.icon = r:CreateTexture(nil, "ARTWORK")
-		r.icon:SetSize(18, 18)
-		r.icon:SetPoint("LEFT", 2, 0)
-		r.name = text(r, "GameFontHighlight", nil, 220)
-		r.name:SetPoint("LEFT", r.icon, "RIGHT", 6, 0)
-		r.name:SetWordWrap(false)
-		r.remove = CreateFrame("Button", nil, r, "UIPanelCloseButtonNoScripts")
-		r.remove:SetSize(22, 22)
-		r.remove:SetPoint("RIGHT", 0, 0)
-		r.remove:SetScript("OnClick", function() ns.SetListed(r.itemID, nil) end)
-		r:SetScript("OnEnter", function(self)
+---------------------------------------------------------------------------
+-- The item list window: one list at a time, any size, with a filter
+---------------------------------------------------------------------------
+
+local WINDOW_NAME = "PickUpFilterListWindow"
+local listWindow
+
+local function sortedItems(key, filter)
+	local rows, total = {}, 0
+	filter = filter and filter ~= "" and filter:lower() or nil
+	local items = loadAllItems()
+	for id in pairs(ns.db[key]) do
+		total = total + 1
+		-- The item list's name first: asking the game about every item could mean a server request each.
+		local index = items.index[id]
+		local name = index and items.names[index] or itemInfo(id) or ("Item " .. id)
+		if not filter or name:lower():find(filter, 1, true) or tostring(id):find(filter, 1, true) then
+			rows[#rows + 1] = { id = id, sortName = name:lower() }
+		end
+	end
+	table.sort(rows, function(a, b)
+		if a.sortName ~= b.sortName then return a.sortName < b.sortName end
+		return a.id < b.id
+	end)
+	return rows, total
+end
+
+local refreshWindow
+
+local function drawListRow(row, data)
+	if not row.icon then
+		row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+		row.icon = row:CreateTexture(nil, "ARTWORK")
+		row.icon:SetSize(18, 18)
+		row.icon:SetPoint("LEFT", 4, 0)
+		row.name = text(row, "GameFontHighlight")
+		row.name:SetPoint("LEFT", row.icon, "RIGHT", 6, 0)
+		row.name:SetPoint("RIGHT", -56, 0)
+		row.name:SetWordWrap(false)
+		row.remove = CreateFrame("Button", nil, row, "UIPanelCloseButtonNoScripts")
+		row.remove:SetSize(22, 22)
+		row.remove:SetPoint("RIGHT", -2, 0)
+		row.remove:SetScript("OnClick", function(self) ns.SetListed(self:GetParent().itemID, nil) end)
+		tooltip(row.remove, "Remove", "Takes the item off this list.")
+		-- Moves the item to the other list: the game's page arrow, pointing the way the other list
+		-- sits on the options page (Always on the left, Never on the right). drawListRow picks the way.
+		local switch = CreateFrame("Button", nil, row)
+		switch:SetSize(26, 26)
+		switch:SetPoint("RIGHT", row.remove, "LEFT", 0, 0)
+		switch:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+		switch:SetScript("OnClick", function(self)
+			local id, other = self:GetParent().itemID, OTHER_LIST[listWindow.key]
+			ns.SetListed(id, other)
+			ns.Print(ns.ItemLabel(id) .. " moved to " .. LIST_TITLES[other] .. ".")
+		end)
+		switch:SetScript("OnEnter", function(self)
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+			GameTooltip:SetText("Move to " .. LIST_TITLES[OTHER_LIST[listWindow.key]], 1, 1, 1)
+			GameTooltip:Show()
+		end)
+		switch:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		row.switch = switch
+		row:SetScript("OnEnter", function(self)
 			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 			GameTooltip:SetItemByID(self.itemID)
 			GameTooltip:AddLine("Item ID " .. self.itemID, 0.6, 0.6, 0.6)
 			GameTooltip:Show()
 		end)
-		r:SetScript("OnLeave", function() GameTooltip:Hide() end)
-		rows[index] = r
-		return r
+		row:SetScript("OnLeave", function() GameTooltip:Hide() end)
 	end
-
-	local empty = text(content, "GameFontDisable", "Nothing here yet.")
-	empty:SetPoint("TOPLEFT", x + 4, listTop - 3)
-
-	local shown = 0
-	local function refresh()
-		local ids = sortedIDs(ns.db[key])
-		for index, id in ipairs(ids) do
-			local r = row(index)
-			r.itemID = id
-			r.icon:SetTexture(C_Item.GetItemIconByID(id))
-			local name, _, quality = C_Item.GetItemInfo(id)
-			if name then
-				local color = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
-				r.name:SetText((color and color.hex or "") .. name .. "|r |cff808080(" .. id .. ")|r")
-			else
-				r.name:SetText("Item " .. id)
-				local item = Item:CreateFromItemID(id)
-				if not item:IsItemEmpty() then item:ContinueOnItemLoad(function() refreshAll() end) end
-			end
-			r:Show()
+	local id = data.id
+	row.itemID = id
+	local page = listWindow.key == "always" and "NextPage" or "PrevPage"
+	if row.switch.page ~= page then
+		row.switch.page = page
+		row.switch:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-" .. page .. "-Up")
+		row.switch:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-" .. page .. "-Down")
+	end
+	row.icon:SetTexture(C_Item.GetItemIconByID(id))
+	local name, quality = itemInfo(id)
+	if name then
+		local color = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+		row.name:SetText((color and color.hex or "") .. name .. "|r |cff808080(" .. id .. ")|r")
+	else
+		row.name:SetText("Item " .. id)
+		local item = Item:CreateFromItemID(id)
+		if not item:IsItemEmpty() then
+			-- Many names can arrive at once; one redraw covers them all.
+			item:ContinueOnItemLoad(function()
+				if listWindow.redrawPending then return end
+				listWindow.redrawPending = true
+				C_Timer.After(0.2, function()
+					listWindow.redrawPending = nil
+					refreshWindow()
+				end)
+			end)
 		end
-		for index = #ids + 1, #rows do rows[index]:Hide() end
-		empty:SetShown(#ids == 0)
-		shown = #ids
 	end
-	table.insert(refreshers, refresh)
-	return function() return listTop - math.max(shown, 1) * LIST_ROW_HEIGHT end
+end
+
+StaticPopupDialogs.PICKUPFILTER_CLEAR_LIST = {
+	text = "Take all %s items off %s?",
+	button1 = "Remove all",
+	button2 = CANCEL,
+	OnAccept = function(_, key)
+		wipe(ns.db[key])
+		ns.Fire("ListsChanged")
+	end,
+	showAlert = true,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+}
+
+local function buildListWindow()
+	local w = CreateFrame("Frame", WINDOW_NAME, UIParent, "BasicFrameTemplateWithInset")
+	w:SetSize(420, 520)
+	w:SetPoint("CENTER")
+	w:SetFrameStrata("DIALOG")
+	w:SetToplevel(true)
+	w:SetMovable(true)
+	w:EnableMouse(true)
+	w:RegisterForDrag("LeftButton")
+	w:SetScript("OnDragStart", w.StartMoving)
+	w:SetScript("OnDragStop", w.StopMovingOrSizing)
+	w:SetClampedToScreen(true)
+	tinsert(UISpecialFrames, WINDOW_NAME)
+	w:Hide()
+
+	local title = text(w, "GameFontHighlight", ns.TITLE .. ": item lists")
+	title:SetPoint("TOP", 0, -5)
+
+	-- One button per list; the one shown stays lit.
+	w.tabs = {}
+	for index, key in ipairs({ "always", "never" }) do
+		local tab = button(w, "", 190, function() ns.OpenItemList(key) end)
+		tab:SetPoint("TOPLEFT", 14 + (index - 1) * 198, -32)
+		w.tabs[key] = tab
+	end
+
+	w.add = addBox(w, "always")
+	w.add:SetPoint("TOPLEFT", 22, -70)
+
+	-- Narrows what's shown, by name or item ID.
+	local ok, filter = pcall(CreateFrame, "EditBox", nil, w, "SearchBoxTemplate")
+	if not (ok and filter) then
+		filter = CreateFrame("EditBox", nil, w, "InputBoxTemplate")
+	end
+	if filter.Instructions then
+		filter.Instructions:SetText("Find in this list")
+		filter.Instructions:SetFontObject("GameFontDisable")
+	end
+	filter:SetFontObject("GameFontHighlight")
+	filter:SetSize(200, 20)
+	filter:SetPoint("TOPLEFT", 22, -100)
+	filter:SetAutoFocus(false)
+	filter:HookScript("OnTextChanged", function() refreshWindow() end)
+	filter:HookScript("OnEnterPressed", function(self) self:ClearFocus() end)
+	w.filter = filter
+
+	w.count = text(w, "GameFontHighlight")
+	w.count:SetPoint("LEFT", filter, "RIGHT", 14, 0)
+
+	local scrollBox = CreateFrame("Frame", nil, w, "WowScrollBoxList")
+	scrollBox:SetPoint("TOPLEFT", 12, -130)
+	scrollBox:SetPoint("BOTTOMRIGHT", -28, 44)
+	local scrollBar = CreateFrame("EventFrame", nil, w, "MinimalScrollBar")
+	scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, 0)
+	scrollBar:SetPoint("BOTTOMLEFT", scrollBox, "BOTTOMRIGHT", 6, 0)
+	local view = CreateScrollBoxListLinearView()
+	view:SetElementExtent(LIST_ROW_HEIGHT)
+	view:SetElementInitializer("Button", drawListRow)
+	ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view)
+	w.scrollBox = scrollBox
+
+	w.empty = text(w, "GameFontDisable")
+	w.empty:SetPoint("TOPLEFT", scrollBox, "TOPLEFT", 6, -4)
+
+	w.clear = button(w, "Remove all", 110, function()
+		local count = listCount(w.key)
+		if count > 0 then
+			StaticPopup_Show("PICKUPFILTER_CLEAR_LIST", count, LIST_TITLES[w.key], w.key)
+		end
+	end)
+	w.clear:SetPoint("BOTTOMLEFT", 14, 12)
+
+	local done = button(w, "Close", 90, function() w:Hide() end)
+	done:SetPoint("BOTTOMRIGHT", -14, 12)
+
+	w:SetScript("OnHide", function()
+		if search.box == w.add then hideSearch() end
+	end)
+	listWindow = w
+	return w
+end
+
+function refreshWindow()
+	local w = listWindow
+	if not (w and w:IsShown()) then return end
+	for key, tab in pairs(w.tabs) do
+		tab:SetText(LIST_TITLES[key] .. " (" .. listCount(key) .. ")")
+		if key == w.key then tab:LockHighlight() else tab:UnlockHighlight() end
+	end
+	local rows, total = sortedItems(w.key, w.filter:GetText())
+	w.scrollBox:SetDataProvider(CreateDataProvider(rows), ScrollBoxConstants.RetainScrollPosition)
+	w.count:SetText(#rows == total and itemsText(total) or (#rows .. " of " .. itemsText(total)))
+	w.empty:SetText(total == 0 and "Nothing here yet." or "No items match.")
+	w.empty:SetShown(#rows == 0)
+	w.clear:SetEnabled(total > 0)
+end
+
+-- Opens the item list window on one list ("always" or "never").
+function ns.OpenItemList(key)
+	local w = listWindow or buildListWindow()
+	if w.key ~= key then
+		w.key = key
+		w.add.listKey = key
+		w.add:SetText("")
+		w.filter:SetText("")
+		if search.box == w.add then hideSearch() end
+	end
+	w:Show()
+	w:Raise()
+	refreshWindow()
+end
+
+---------------------------------------------------------------------------
+-- Item lists on the options page: a box to add, how many are on the list, and a button to open it
+---------------------------------------------------------------------------
+
+local function buildList(x, y, key)
+	local fs = text(content, "GameFontNormal", LIST_TITLES[key])
+	fs:SetPoint("TOPLEFT", x, y)
+	y = y - 22
+
+	local box = addBox(content, key)
+	box:SetPoint("TOPLEFT", x + 6, y)
+	y = y - 30
+
+	local count = text(content, "GameFontHighlight")
+	count:SetPoint("TOPLEFT", x + 4, y - 5)
+	local open = button(content, "Open list", 100, function() ns.OpenItemList(key) end)
+	open:SetPoint("TOPLEFT", x + 166, y)
+	tooltip(open, LIST_TITLES[key], "Shows every item on this list, to find, add and remove them.")
+	table.insert(refreshers, function()
+		local n = listCount(key)
+		count:SetText(n == 0 and "|cff808080Nothing here yet.|r" or itemsText(n))
+	end)
+	return y - 30
 end
 
 local function buildLists(y)
 	heading("Item lists", y)
 	y = y - 26
 	local help = text(content, "GameFontHighlight",
-		"These win over every other rule. Type part of an item's name to pick it from your bags (Up and Down choose, Enter adds), type an item ID, Shift-click an item into a box, or drag one from your bags onto it.",
+		"These win over every other rule. Type part of an item's name and pick it from the list (Up and Down choose, Enter adds), type an item ID, Shift-click an item into a box, or drag one from your bags onto it.",
 		WIDTH - 30)
 	help:SetPoint("TOPLEFT", COLUMNS.quality, y)
 	y = y - help:GetStringHeight() - 14
-	local alwaysBottom = buildList(COLUMNS.quality, y, "always", "Always pick up",
-		"Items picked up whatever they're worth.")
-	local neverBottom = buildList(COLUMNS.quality + 310, y, "never", "Never pick up",
-		"Items left behind whatever they're worth, quest items included.")
-	return function() return math.min(alwaysBottom(), neverBottom()) end
+	buildList(COLUMNS.quality, y, "always")
+	local bottom = buildList(COLUMNS.quality + 310, y, "never")
+	return function() return bottom end
 end
 
 -- A Shift-clicked item goes into whichever list box is being typed in.
@@ -780,6 +1102,7 @@ end)
 
 ns.Listen("ListsChanged", function()
 	if content and content:IsVisible() then refreshAll() end
+	refreshWindow()
 end)
 
 ns.Listen("SettingChanged", function()
@@ -789,4 +1112,5 @@ end)
 ns.Listen("ProfileChanged", function()
 	hideSearch()
 	if content and content:IsVisible() then refreshAll() end
+	refreshWindow()
 end)

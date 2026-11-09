@@ -43,10 +43,10 @@ Out of the box, grey and white items need to be worth 1s, or 5s for a full stack
 - **Gathering is never filtered:** herbs, ore, fish, skins, chests and lockboxes come in whole.
 - **Appearances you haven't collected**, even on grey gear.
 - **Crafting reagents** too, if you like.
-- **What All The Things says you need**, when you have it: anything missing from your collection or needed to get something.
+- **What All The Things says you need**, if you use it.
 
 ### Your own lists
-**Always pick up** and **Never pick up** lists win over every other rule. Add items by typing part of their name.
+**Always pick up** and **Never pick up** lists win over every other rule. Find any item in the game by name, even ones you've never had. Each list opens in its own window.
 
 ### Profiles
 Each character uses a whole filter of its own, or shares one with your other characters.
@@ -59,7 +59,7 @@ Each character uses a whole filter of its own, or shares one with your other cha
 - **Hold Shift** while looting to take everything.
 
 ### Good to know
-- PickUp Filter does the auto looting itself, so the game's own Auto Loot has to be off. It offers to turn it off for you.
+- The game's own Auto Loot has to be off; PickUp Filter offers to turn it off.
 - Works with **TradeSkillMaster**, **Auctionator** and **All The Things**. Without them, vendor prices are used.
 - **/puf** opens the options. **/puf check [item]** says whether an item would be picked up, and why.
 - Made for **WoW Forever**.
@@ -72,11 +72,11 @@ Each character uses a whole filter of its own, or shares one with your other cha
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.4.0.zip`
+**File:** `dist\PickUpFilter-1.5.0.zip`
 
 **Display name**
 ```
-PickUp Filter 1.4.0
+PickUp Filter 1.5.0
 ```
 
 **Release type:** `Release`
@@ -85,6 +85,10 @@ PickUp Filter 1.4.0
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.5.0
+- The Always pick up and Never pick up boxes now find any item in the game, not just what's in your bags, so you can list things you've never had. Matches from your bags come first, and the list of matches scrolls.
+- Item lists have a window of their own: the options page shows how many items each list has, and **Open list** shows the whole list, however long. Find items in it by name or ID, move one to the other list with the arrow button, take one off with the X, or empty the list with **Remove all**.
+
 1.4.0
 - Items that stack are now judged by what a full stack would be worth, however many dropped: one cloth worth 30c that stacks to 20 counts as 6s. The default **Whole stack** amount is now 5s, and rules still on the old 1s default move to 5s.
 - New TSM price: **Region sale average**, what an item actually sells for across your region.
