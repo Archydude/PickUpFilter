@@ -16,9 +16,27 @@ local function refreshAll()
 	for _, refresh in ipairs(refreshers) do refresh() end
 end
 
+-- The game doesn't let addons open its settings during combat, so a request then waits for the fight to end.
+local openAfterCombat = false
+
 function ns.OpenOptions()
-	if category then Settings.OpenToCategory(category:GetID()) end
+	if not category then return end
+	if InCombatLockdown() then
+		if not openAfterCombat then
+			openAfterCombat = true
+			ns.Print("the options open when you leave combat.")
+		end
+		return
+	end
+	Settings.OpenToCategory(category:GetID())
 end
+
+ns.On("PLAYER_REGEN_ENABLED", function()
+	if openAfterCombat then
+		openAfterCombat = false
+		ns.OpenOptions()
+	end
+end)
 
 ---------------------------------------------------------------------------
 -- Building blocks

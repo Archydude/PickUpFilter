@@ -2,10 +2,13 @@
 ArchdudeWhatsNew:Register("PickUpFilter", {
 	title = "PickUp Filter",
 	icon = "Interface\\Icons\\INV_Misc_Bag_10",
-	version = "1.5.0",
+	version = "1.5.1",
 	seen = "PickUpFilterWhatsNew",
 	saved = { "PickUpFilterDB" },
 	changes = {
+		{ "1.5.1",
+			"Fixed an error when opening the options during combat (\"tried to call the protected function 'OpenSettingsPanel()'\"). The options now open as soon as the fight ends.",
+		},
 		{ "1.5.0",
 			"The Always pick up and Never pick up boxes now find any item in the game, not just what's in your bags, so you can list things you've never had. Matches from your bags come first, and the list of matches scrolls.",
 			"Item lists have a window of their own: the options page shows how many items each list has, and |cffffd100Open list|r shows the whole list, however long. Find items in it by name or ID, move one to the other list with the arrow button, take one off with the X, or empty the list with |cffffd100Remove all|r.",
