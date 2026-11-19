@@ -64,6 +64,8 @@ Each character uses a whole filter of its own, or shares one with your other cha
 - **/puf** opens the options. **/puf check [item]** says whether an item would be picked up, and why.
 - Made for **WoW Forever**.
 
+This addon was made with AI.
+
 **Feedback and bug reports are welcome** in the comments.
 ```
 ---

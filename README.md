@@ -102,6 +102,9 @@ The window can be moved, and Esc closes it.
 
 The minimap button's tooltip shows whether the filter is on and which profile this character uses. The button opens the options on click and turns the filter on or off on right-click. Minimap button collectors pick it up, and it's in the addon menu on the minimap too.
 
+## Made with AI
+This addon was made with AI.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
