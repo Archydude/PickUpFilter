@@ -2,10 +2,14 @@
 ArchdudeWhatsNew:Register("PickUpFilter", {
 	title = "PickUp Filter",
 	icon = "Interface\\Icons\\INV_Misc_Bag_10",
-	version = "1.5.1",
+	version = "1.5.2",
 	seen = "PickUpFilterWhatsNew",
 	saved = { "PickUpFilterDB" },
 	changes = {
+		{ "1.5.2",
+			"Fixed: characters were saved under their first name only, so characters with the same first name on a realm shared one profile choice and one on/off setting. Each character now has its own, starting from what it shared before.",
+			"Fixed: when the game didn't give the realm's name at login, a character could run on the Default profile for that session. It now keeps its own profile and on/off setting.",
+		},
 		{ "1.5.1",
 			"Fixed an error when opening the options during combat (\"tried to call the protected function 'OpenSettingsPanel()'\"). The options now open as soon as the fight ends.",
 		},

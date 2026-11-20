@@ -23,11 +23,12 @@ function ns.FallbackProfile(leaving)
 	end
 end
 
--- Characters using profile `name`, as "Name-Realm", sorted.
+-- Characters using profile `name`, as "Name-Realm", sorted. Not the entries older versions saved
+-- under a first name only.
 function ns.ProfileUsers(name)
 	local users = {}
 	for key, char in pairs(ns.global.chars) do
-		if char.profile == name then users[#users + 1] = key end
+		if char.profile == name and not char.legacy then users[#users + 1] = key end
 	end
 	table.sort(users)
 	return users

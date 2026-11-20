@@ -87,7 +87,8 @@ ns.DEFAULTS = {
 	never = {},              -- [itemID] = true: always left behind
 }
 
--- Each character's own settings.
+-- Each character's own settings. An entry can also have `legacy = true`: older versions saved it
+-- under the first name only, so it's kept for the other characters with that first name.
 local CHAR_DEFAULTS = {
 	profile = "Default",
 	enabled = true,          -- off: everything is picked up, like the game's Auto Loot
@@ -138,9 +139,60 @@ function ns.NewProfileSettings()
 	return copy(ns.DEFAULTS)
 end
 
+-- The saved characters called `name` that have a realm in their key: one's key, and how many.
+local function savedAs(chars, name)
+	local found, count = nil, 0
+	for key in pairs(chars) do
+		if key:match("^([^%-]*)%-.+$") == name then found, count = key, count + 1 end
+	end
+	return found, count
+end
+
+-- This character's key in `chars`, "Name-Realm". A character with no entry yet gets what an older
+-- key saved for it.
+local function resolveChar(chars)
+	-- WoW: Forever characters have a first and last name, which UnitName returns as two values.
+	local first, last = UnitName("player")
+	local name = (last and last ~= "") and (first .. " " .. last) or first
+	local realm = GetRealmName() or ""
+	local key, realmless = name .. "-" .. realm, name .. "-"
+
+	-- Older versions saved Forever characters under their first name only, so characters with the
+	-- same first name shared an entry. Each gets a copy of it; the old one stays for the others.
+	local function inherit(oldKey)
+		local old = oldKey and oldKey ~= key and chars[oldKey]
+		if not old then return false end
+		old.legacy = true
+		chars[key] = copy(old)
+		chars[key].legacy = nil
+		return true
+	end
+
+	if realm ~= "" then
+		-- Saved while the game gave no realm name (see below).
+		if chars[realmless] then
+			chars[key] = chars[key] or chars[realmless]
+			chars[realmless] = nil
+		end
+		if first ~= name then
+			if not chars[key] then inherit(first .. "-" .. realm) end
+			chars[first .. "-"] = nil
+		end
+		return key
+	end
+
+	-- WoW: Forever sometimes gives an empty realm name for a whole session. Then this is the
+	-- character already saved under this name, when there's just one.
+	local found, count = savedAs(chars, name)
+	if count == 1 then return found end
+	if not chars[key] and first ~= name then
+		found, count = savedAs(chars, first)
+		if not inherit(count == 1 and found) then inherit(first .. "-") end
+	end
+	return key
+end
+
 local function load()
-	-- This character, as "Name-Realm".
-	ns.CHAR_KEY = UnitName("player") .. "-" .. GetRealmName()
 	local saved = type(PickUpFilterDB) == "table" and PickUpFilterDB or {}
 	PickUpFilterDB = saved
 	-- Settings from before profiles become the Default profile.
@@ -148,7 +200,8 @@ local function load()
 		local old = {}
 		for key in pairs(ns.DEFAULTS) do old[key], saved[key] = saved[key], nil end
 		saved.profiles = { [ns.DEFAULT_PROFILE] = old }
-		saved.chars = { [ns.CHAR_KEY] = { enabled = saved.enabled ~= false } }
+		saved.chars = {}
+		saved.chars[resolveChar(saved.chars)] = { enabled = saved.enabled ~= false }
 	end
 	fill(saved, GLOBAL_DEFAULTS)
 	for key in pairs(saved) do
@@ -167,6 +220,7 @@ local function load()
 	end
 	if not next(saved.profiles) then saved.profiles[ns.DEFAULT_PROFILE] = ns.NewProfileSettings() end
 
+	ns.CHAR_KEY = resolveChar(saved.chars)
 	saved.chars[ns.CHAR_KEY] = saved.chars[ns.CHAR_KEY] or {}
 	local char = saved.chars[ns.CHAR_KEY]
 	fill(char, CHAR_DEFAULTS)

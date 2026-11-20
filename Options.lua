@@ -1050,7 +1050,8 @@ local function buildProfiles(y)
 		deleteButton:SetEnabled(#ns.ProfileNames() > 1)
 		local others = {}
 		for _, key in ipairs(ns.ProfileUsers(ns.char.profile)) do
-			if key ~= ns.CHAR_KEY then others[#others + 1] = key end
+			-- A character saved while the game gave no realm name has none in its key.
+			if key ~= ns.CHAR_KEY then others[#others + 1] = (key:gsub("%-$", "")) end
 		end
 		users:SetText(#others > 0 and ("Also used by " .. table.concat(others, ", ") .. ".")
 			or "No other character uses this profile.")

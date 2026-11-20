@@ -74,11 +74,11 @@ This addon was made with AI.
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.5.1.zip`
+**File:** `dist\PickUpFilter-1.5.2.zip`
 
 **Display name**
 ```
-PickUp Filter 1.5.1
+PickUp Filter 1.5.2
 ```
 
 **Release type:** `Release`
@@ -87,6 +87,10 @@ PickUp Filter 1.5.1
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.5.2
+- Fixed: characters were saved under their first name only, so characters with the same first name on a realm shared one profile choice and one on/off setting. Each character now has its own, starting from what it shared before.
+- Fixed: when the game didn't give the realm's name at login, a character could run on the Default profile for that session. It now keeps its own profile and on/off setting.
+
 1.5.1
 - Fixed an error when opening the options during combat ("tried to call the protected function 'OpenSettingsPanel()'"). The options now open as soon as the fight ends.
 
