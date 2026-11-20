@@ -38,22 +38,57 @@ local function closeIfDone()
 	end
 end
 
--- Gathering: herbs, ore, fishing, skinning, and anything else the loot comes from a cast or an
--- object in the world for (chests, lockboxes).
-local GATHER_CAST_WINDOW = 1 -- seconds between a finished cast and the loot opening
-local lastCast = 0
+-- Gathering: herbs, ore, fishing, skinning, and things that are opened (chests, lockboxes).
+-- A skinned corpse is a creature like a killed one, so skinning is known by the cast that opened
+-- the loot. Only gathering casts count: any other cast just before looting (a shot at the next
+-- enemy while looting the last one) is still a kill's loot.
+local GATHER_CAST_WINDOW = 1 -- seconds between a finished gathering cast and the loot opening
+-- One spell of each kind; its other ranks and versions share its name.
+local GATHER_SPELLS = {
+	8613,    -- Skinning
+	2366,    -- Herbalism
+	1235236, -- Herb Gathering
+	2575,    -- Mining
+	7620,    -- Fishing
+	3365,    -- Opening
+	22810,   -- Opening - No Text
+	921,     -- Pick Pocket
+	13262,   -- Disenchant
+}
+local gatherNames -- [spell name] = true, filled on the first cast
+local lastGatherCast = 0
 
-ns.On("UNIT_SPELLCAST_SUCCEEDED", function(unit)
-	if unit == "player" then lastCast = GetTime() end
+local function spellName(spellID)
+	if C_Spell and C_Spell.GetSpellName then return C_Spell.GetSpellName(spellID) end
+	return (GetSpellInfo(spellID))
+end
+
+local function isGatherSpell(spellID)
+	-- The game can hide which spell was cast; a hidden one can't be told apart, so it doesn't count.
+	if type(spellID) ~= "number" or (issecretvalue and issecretvalue(spellID)) then return false end
+	if not gatherNames then
+		gatherNames = {}
+		for _, id in ipairs(GATHER_SPELLS) do
+			local name = spellName(id)
+			if name then gatherNames[name] = true end
+		end
+	end
+	local name = spellName(spellID)
+	return name ~= nil and gatherNames[name] == true
+end
+
+ns.On("UNIT_SPELLCAST_SUCCEEDED", function(unit, _, spellID)
+	if unit == "player" and isGatherSpell(spellID) then lastGatherCast = GetTime() end
 end)
 
 local function isGathering()
 	if IsFishingLoot and IsFishingLoot() then return true end
-	if GetTime() - lastCast <= GATHER_CAST_WINDOW then return true end
+	if GetTime() - lastGatherCast <= GATHER_CAST_WINDOW then return true end
 	if GetLootSourceInfo then
 		for slot = 1, GetNumLootItems() do
+			-- Loot from an object in the world, or from an item (a lockbox, something disenchanted).
 			local guid = GetLootSourceInfo(slot)
-			if type(guid) == "string" and guid:find("^GameObject") then return true end
+			if type(guid) == "string" and (guid:find("^GameObject") or guid:find("^Item")) then return true end
 		end
 	end
 	return false
