@@ -153,6 +153,7 @@ end
 local function resolveChar(chars)
 	-- WoW: Forever characters have a first and last name, which UnitName returns as two values.
 	local first, last = UnitName("player")
+	first = first or UNKNOWN
 	local name = (last and last ~= "") and (first .. " " .. last) or first
 	local realm = GetRealmName() or ""
 	local key, realmless = name .. "-" .. realm, name .. "-"
@@ -192,6 +193,8 @@ local function resolveChar(chars)
 	return key
 end
 
+local legacyEnabled
+
 local function load()
 	local saved = type(PickUpFilterDB) == "table" and PickUpFilterDB or {}
 	PickUpFilterDB = saved
@@ -201,7 +204,7 @@ local function load()
 		for key in pairs(ns.DEFAULTS) do old[key], saved[key] = saved[key], nil end
 		saved.profiles = { [ns.DEFAULT_PROFILE] = old }
 		saved.chars = {}
-		saved.chars[resolveChar(saved.chars)] = { enabled = saved.enabled ~= false }
+		legacyEnabled = saved.enabled ~= false
 	end
 	fill(saved, GLOBAL_DEFAULTS)
 	for key in pairs(saved) do
@@ -219,14 +222,26 @@ local function load()
 		saved.stackRules = 1
 	end
 	if not next(saved.profiles) then saved.profiles[ns.DEFAULT_PROFILE] = ns.NewProfileSettings() end
+	ns.global = saved
+end
 
+local loggedIn = false
+local function login()
+	if loggedIn or not ns.global then return end
+	loggedIn = true
+	local saved = ns.global
 	ns.CHAR_KEY = resolveChar(saved.chars)
 	saved.chars[ns.CHAR_KEY] = saved.chars[ns.CHAR_KEY] or {}
+	if legacyEnabled ~= nil then
+		saved.chars[ns.CHAR_KEY].enabled = legacyEnabled
+		legacyEnabled = nil
+	end
 	local char = saved.chars[ns.CHAR_KEY]
 	fill(char, CHAR_DEFAULTS)
-	ns.global, ns.char = saved, char
+	ns.char = char
 	if not saved.profiles[char.profile] then char.profile = ns.FallbackProfile() end
 	ns.db = saved.profiles[char.profile]
+	ns.Fire("Loaded")
 end
 
 ---------------------------------------------------------------------------
@@ -323,8 +338,10 @@ end
 ns.On("ADDON_LOADED", function(name)
 	if name ~= ADDON_NAME then return end
 	load()
-	ns.Fire("Loaded")
+	if IsLoggedIn and IsLoggedIn() then login() end
 end)
+
+ns.On("PLAYER_LOGIN", login)
 
 ---------------------------------------------------------------------------
 -- Item lists
@@ -350,7 +367,7 @@ local function help()
 	print("  /puf never <item> - never pick up this item")
 	print("  /puf remove <item> - take an item off both lists")
 	print("  /puf list - show both lists")
-	print("  /puf check [count] <item> - what the filter would do with it, and why")
+	print("  /puf check <item> - what the filter would do with it, and why")
 	print("  /puf profile - show the profiles, and which one this character uses")
 	print("  /puf profile <name> - switch this character to that profile")
 	print("  /puf minimap - show or hide the minimap button")
@@ -406,6 +423,7 @@ end
 SLASH_PICKUPFILTER1 = "/puf"
 SLASH_PICKUPFILTER2 = "/pickupfilter"
 SlashCmdList.PICKUPFILTER = function(msg)
+	if not ns.db then return end
 	msg = strtrim(msg or "")
 	local command, rest = msg:match("^(%S*)%s*(.-)$")
 	command = command:lower()

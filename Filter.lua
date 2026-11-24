@@ -129,28 +129,22 @@ end
 -- /puf check
 ---------------------------------------------------------------------------
 
-local function explain(link, count)
-	local item = ns.ItemFromLink(link, count)
+local function explain(link)
+	local item = ns.ItemFromLink(link, 1)
 	local take, reason = ns.Decide(item)
 	local verdict = take and "|cff40ff40picked up|r" or "|cffff6060left behind|r"
-	local shown = count > 1 and (count .. " x " .. link) or link
-	ns.Print(shown .. " would be " .. verdict .. " (" .. reason .. ").")
+	ns.Print(link .. " would be " .. verdict .. " (" .. reason .. ").")
 	if not ns.char.enabled then ns.Print("The filter is off right now, so everything is picked up.") end
 end
 
--- "/puf check [count] <item link or ID>".
+-- "/puf check <item link or ID>".
 function ns.CheckCommand(rest)
 	rest = strtrim(rest or "")
-	local count, after = rest:match("^(%d+)%s+(.+)$")
-	if count and ns.ItemIDFrom(after) then
-		rest = after
-	else
-		count = nil
-	end
-	count = math.max(1, tonumber(count) or 1)
+	local _, after = rest:match("^(%d+)%s+(.+)$")
+	if after and ns.ItemIDFrom(after) then rest = after end
 	local itemID = ns.ItemIDFrom(rest)
 	if not itemID then
-		ns.Print("put a Shift-clicked item link or an item ID after /puf check, like /puf check 20 [Linen Cloth].")
+		ns.Print("put a Shift-clicked item link or an item ID after /puf check, like /puf check [Linen Cloth].")
 		return
 	end
 	local item = Item:CreateFromItemID(itemID)
@@ -159,6 +153,6 @@ function ns.CheckCommand(rest)
 		return
 	end
 	item:ContinueOnItemLoad(function()
-		explain(rest:match("|c[^|]*|Hitem:[^|]*|h.-|h|r") or item:GetItemLink(), count)
+		explain(rest:match("|c[^|]*|Hitem:[^|]*|h.-|h|r") or item:GetItemLink())
 	end)
 end

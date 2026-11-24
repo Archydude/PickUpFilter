@@ -96,7 +96,7 @@ The window can be moved, and Esc closes it.
 - `/puf on` and `/puf off` turn the filter on and off. When it's off, everything is picked up.
 - `/puf always <item>`, `/puf never <item>`, `/puf remove <item>`: add an item to a list or take it off. Use an item ID or a Shift-clicked link.
 - `/puf list` shows both lists.
-- `/puf check [count] <item>` says whether the item would be picked up, and why: `/puf check 20 [Linen Cloth]`.
+- `/puf check <item>` says whether the item would be picked up, and why: `/puf check [Linen Cloth]`.
 - `/puf profile` shows your profiles and which one this character uses. `/puf profile <name>` switches to another one.
 - `/puf minimap` shows or hides the minimap button.
 

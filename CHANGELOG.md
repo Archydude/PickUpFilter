@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1
+- Fixed: AoE looting a mob alongside a chest or gathering node no longer bypasses your filter for the whole pull, and Pick Pocket loot is filtered normally.
+- Fixed: you can click with an item on your cursor to drop it into the Always pick up or Never pick up boxes, and a character's profile resolves reliably at login.
+- Fixed: removed the unused count argument from `/puf check`.
+
 ## 1.6.0
 - **Craftonomics prices:** PickUp Filter can now price loot with **Craftonomics** (including Craftonomics' own auction house scans), in your priority order or highest-price mode.
 - Fixed: only real gathering actions (herbalism, mining, skinning, fishing, opening, pick pocket and disenchanting) count as gathering loot, so casting an attack while looting a mob no longer bypasses your filter.

@@ -708,15 +708,20 @@ local function addBox(parent, key)
 		-- A click on a match takes the focus first; the click still has to land.
 		if search.box == self and not (search.frame and search.frame:IsMouseOver()) then hideSearch() end
 	end)
-	-- An item dragged from the bags onto the box.
-	box:SetScript("OnReceiveDrag", function(self)
+	-- An item dragged or click-dropped from the bags onto the box.
+	local function acceptDrop(self)
 		local kind, itemID = GetCursorInfo()
 		if kind == "item" and itemID then
 			ClearCursor()
 			ns.SetListed(itemID, self.listKey)
+			self:ClearFocus()
 		end
+	end
+	box:SetScript("OnReceiveDrag", function(self)
+		acceptDrop(self)
 		self:ClearFocus()
 	end)
+	box:HookScript("OnMouseUp", acceptDrop)
 	box:HookScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 		GameTooltip:SetText("Add to " .. LIST_TITLES[self.listKey], 1, 1, 1)

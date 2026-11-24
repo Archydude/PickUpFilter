@@ -66,7 +66,6 @@ local GATHER_SPELLS = {
 	7620,    -- Fishing
 	3365,    -- Opening
 	22810,   -- Opening - No Text
-	921,     -- Pick Pocket
 	13262,   -- Disenchant
 }
 local gatherNames -- [spell name] = true, filled on the first cast
@@ -95,14 +94,21 @@ ns.On("UNIT_SPELLCAST_SUCCEEDED", function(unit, _, spellID)
 	if unit == "player" and isGatherSpell(spellID) then lastGatherCast = GetTime() end
 end)
 
+local function hasObjectSource(...)
+	for i = 1, select("#", ...), 2 do
+		local guid = select(i, ...)
+		if type(guid) == "string" and (guid:find("^GameObject") or guid:find("^Item")) then return true end
+	end
+	return false
+end
+
 local function isGathering()
 	if IsFishingLoot and IsFishingLoot() then return true end
 	if GetTime() - lastGatherCast <= GATHER_CAST_WINDOW then return true end
 	if GetLootSourceInfo then
 		for slot = 1, GetNumLootItems() do
 			-- Loot from an object in the world, or from an item (a lockbox, something disenchanted).
-			local guid = GetLootSourceInfo(slot)
-			if type(guid) == "string" and (guid:find("^GameObject") or guid:find("^Item")) then return true end
+			if hasObjectSource(GetLootSourceInfo(slot)) then return true end
 		end
 	end
 	return false
