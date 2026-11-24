@@ -813,17 +813,21 @@ local function drawListRow(row, data)
 		row.name:SetText((color and color.hex or "") .. name .. "|r |cff808080(" .. id .. ")|r")
 	else
 		row.name:SetText("Item " .. id)
-		local item = Item:CreateFromItemID(id)
-		if not item:IsItemEmpty() then
-			-- Many names can arrive at once; one redraw covers them all.
-			item:ContinueOnItemLoad(function()
-				if listWindow.redrawPending then return end
-				listWindow.redrawPending = true
-				C_Timer.After(0.2, function()
-					listWindow.redrawPending = nil
-					refreshWindow()
+		listWindow.requested = listWindow.requested or {}
+		if not listWindow.requested[id] then
+			listWindow.requested[id] = true
+			local item = Item:CreateFromItemID(id)
+			if not item:IsItemEmpty() then
+				-- Many names can arrive at once; one redraw covers them all.
+				item:ContinueOnItemLoad(function()
+					if listWindow.redrawPending then return end
+					listWindow.redrawPending = true
+					C_Timer.After(0.2, function()
+						listWindow.redrawPending = nil
+						refreshWindow()
+					end)
 				end)
-			end)
+			end
 		end
 	end
 end

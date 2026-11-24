@@ -10,10 +10,24 @@ local _, ns = ...
 --   keepOpen       true once something wanted couldn't be picked up (full bags)
 local session
 
-local function sortKey(entry)
-	-- Money, currencies and items picked up by a rule rather than a price go first, then by value.
-	return entry.value or math.huge
+-- Money, currencies, quest items and always-list items go first (priority 2); other items
+-- sort by the value of what actually dropped (each * count), including Uncommon+ items.
+local function sortOrder(entry)
+	local item = entry.item
+	if item.kind == "money" or item.kind == "currency" or item.isQuest
+		or (item.itemID and ns.db.always[item.itemID]) then
+		return 2, math.huge
+	end
+	if entry.droppedValue ~= nil then return 1, entry.droppedValue end
+	if item.known then
+		local row = ns.QualityRow(item.quality)
+		local each = ns.ItemPrice(item, row and row.price or "best")
+		if each then return 1, each * (item.count or 1) end
+	end
+	return 1, entry.value or 0
 end
+
+local UNCACHE_WAIT = 0.15 -- brief wait for uncached loot items before falling back to noPrice
 
 local function reportLeft(left)
 	if not ns.db.reportLeft or #left == 0 then return end
@@ -94,11 +108,29 @@ local function isGathering()
 	return false
 end
 
-ns.On("LOOT_READY", function(autoLoot)
-	-- The game is picking up everything itself: its Auto Loot is on, or its Auto Loot key is held.
-	if autoLoot or session then return end
-	session = { pending = {} }
+local function processLoot(current, allowDefer)
+	if session ~= current then return end
 	local takeAll = not ns.char.enabled or (ns.db.gathering and isGathering())
+
+	-- If any "value"-ruled item isn't cached yet, request its info and retry once briefly
+	-- instead of immediately falling back to db.noPrice.
+	if allowDefer and not takeAll then
+		local waiting = false
+		for slot = 1, GetNumLootItems() do
+			local item = ns.SlotItem(slot)
+			if item.kind == "item" and not item.locked and not item.known and item.itemID then
+				local row = ns.QualityRow(item.quality)
+				if row and row.action == "value" then
+					C_Item.RequestLoadItemDataByID(item.itemID)
+					waiting = true
+				end
+			end
+		end
+		if waiting then
+			C_Timer.After(UNCACHE_WAIT, function() processLoot(current, false) end)
+			return
+		end
+	end
 
 	local take, left = {}, {}
 	for slot = 1, GetNumLootItems() do
@@ -110,25 +142,39 @@ ns.On("LOOT_READY", function(autoLoot)
 			else
 				wanted, _, value, priceName = ns.Decide(item)
 			end
-			local entry = { slot = slot, item = item, value = value, priceName = priceName }
+			local droppedValue
+			if value and item.stackable and (item.maxStack or 1) > 0 then
+				droppedValue = (value / item.maxStack) * (item.count or 1)
+			elseif value then
+				droppedValue = value * (item.count or 1)
+			end
+			local entry = { slot = slot, item = item, value = value, droppedValue = droppedValue, priceName = priceName }
 			table.insert(wanted and take or left, entry)
 		end
 	end
 
 	if ns.db.valuableFirst then
+		for _, entry in ipairs(take) do entry.prio, entry.sortVal = sortOrder(entry) end
 		table.sort(take, function(a, b)
-			local ka, kb = sortKey(a), sortKey(b)
-			if ka ~= kb then return ka > kb end
+			if a.prio ~= b.prio then return a.prio > b.prio end
+			if a.sortVal ~= b.sortVal then return a.sortVal > b.sortVal end
 			return a.slot < b.slot
 		end)
 	end
 
-	for _, entry in ipairs(take) do session.pending[entry.slot] = true end
+	for _, entry in ipairs(take) do current.pending[entry.slot] = true end
 	for _, entry in ipairs(take) do LootSlot(entry.slot) end
 	reportLeft(left)
 
 	-- Nothing wanted: close once the window has opened, so the corpse keeps the rest.
 	if #take == 0 and #left > 0 then C_Timer.After(0, closeIfDone) end
+end
+
+ns.On("LOOT_READY", function(autoLoot)
+	-- The game is picking up everything itself: its Auto Loot is on, or its Auto Loot key is held.
+	if autoLoot or session then return end
+	session = { pending = {} }
+	processLoot(session, true)
 end)
 
 ns.On("LOOT_SLOT_CLEARED", function(slot)
