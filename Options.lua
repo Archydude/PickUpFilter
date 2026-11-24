@@ -303,16 +303,19 @@ local function buildPrices(y)
 	local tsm = dropdown(content, 220, tsmChoices, function() return ns.db.tsmSource end,
 		function(v) ns.db.tsmSource = v end)
 	tsm:SetPoint("TOPLEFT", COLUMNS.action, y)
-	local loaded = text(content, "GameFontHighlight")
-	loaded:SetPoint("LEFT", tsm, "RIGHT", 16, 0)
+	y = y - 30
+	local loaded = text(content, "GameFontHighlight", nil, WIDTH - COLUMNS.action - 10)
+	loaded:SetPoint("TOPLEFT", COLUMNS.action, y)
 	table.insert(refreshers, function()
-		loaded:SetText(addonState("TSM", ns.TSMLoaded()) .. "    " .. addonState("Auctionator", ns.AuctionatorLoaded()))
+		loaded:SetText(addonState("TSM", ns.TSMLoaded()) .. "    "
+			.. addonState("Auctionator", ns.AuctionatorLoaded()) .. "    "
+			.. addonState("Craftonomics", ns.CraftonomicsLoaded()))
 	end)
-	y = y - 36
+	y = y - 24
 
 	local help = text(content, "GameFontHighlight",
-		"|cffffd100Priority order|r uses the first of these with a price for the item. |cffffd100Highest price|r uses the highest of all three. "
-			.. "|cffffd100Vendor price|r is what a vendor pays. TSM and Auctionator count only while they're loaded.",
+		"|cffffd100Priority order|r uses the first of these with a price for the item. |cffffd100Highest price|r uses the highest of all sources. "
+			.. "|cffffd100Vendor price|r is what a vendor pays. TSM, Auctionator and Craftonomics count only while they're loaded.",
 		WIDTH - 30)
 	help:SetPoint("TOPLEFT", COLUMNS.quality, y)
 	return y - help:GetStringHeight() - 24

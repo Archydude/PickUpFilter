@@ -2,10 +2,16 @@
 ArchdudeWhatsNew:Register("PickUpFilter", {
 	title = "PickUp Filter",
 	icon = "Interface\\Icons\\INV_Misc_Bag_10",
-	version = "1.5.2",
+	version = "1.6.0",
 	seen = "PickUpFilterWhatsNew",
 	saved = { "PickUpFilterDB" },
 	changes = {
+		{ "1.6.0",
+			"|cffffd100Craftonomics prices:|r PickUp Filter can now price loot with |cffffd100Craftonomics|r (including Craftonomics' own auction house scans), in your priority order or highest-price mode.",
+			"Fixed: only real gathering actions (herbalism, mining, skinning, fishing, opening, pick pocket and disenchanting) count as gathering loot, so casting an attack while looting a mob no longer bypasses your filter.",
+			"Fixed: Uncommon and better items set to |cffffd100Always pick up|r are now looted most valuable first when bags are nearly full.",
+			"Fixed: items whose details haven't loaded yet wait briefly before falling back to your unpriced-item rule, and editing your item lists no longer causes redundant redraws.",
+		},
 		{ "1.5.2",
 			"Fixed: characters were saved under their first name only, so characters with the same first name on a realm shared one profile choice and one on/off setting. Each character now has its own, starting from what it shared before.",
 			"Fixed: when the game didn't give the realm's name at login, a character could run on the Default profile for that session. It now keeps its own profile and on/off setting.",

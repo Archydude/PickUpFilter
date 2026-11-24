@@ -13,7 +13,7 @@ PickUp Filter
 
 **Summary**
 ```
-Auto loot that leaves the junk behind. Pick up only what's worth having, by item quality and vendor, TSM or Auctionator price, with your own always and never lists.
+Auto loot that leaves the junk behind. Pick up only what's worth having, by item quality and vendor, TSM, Auctionator or Craftonomics price, with your own always and never lists.
 ```
 
 **Main category:** `Bags & Inventory`
@@ -35,7 +35,7 @@ WoW Forever drops a lot of junk. PickUp Filter loots for you and takes only what
 One row for each item quality, from grey to Legendary:
 - **Always pick up**, **never pick up**, or pick up when it's **worth at least** an amount you set, like `1s` or `2g 50s`.
 - Stackables count as a full stack: one linen at 30c, in stacks of 20, is worth 6s.
-- Each quality picks its price: the **vendor price**, a **priority order** of TSM, Auctionator and vendor price, or the **highest** of them.
+- Each quality picks its price: **vendor**, a **priority order** of TSM, Auctionator, Craftonomics and vendor price, or the **highest** of them.
 
 Out of the box, grey and white items need to be worth 1s, or 5s for a full stack, and green and better are always picked up.
 
@@ -60,8 +60,8 @@ Each character uses a whole filter of its own, or shares one with your other cha
 
 ### Good to know
 - The game's own Auto Loot has to be off; PickUp Filter offers to turn it off.
-- Works with **TradeSkillMaster**, **Auctionator** and **All The Things**. Without them, vendor prices are used.
-- **/puf** opens the options. **/puf check [item]** says whether an item would be picked up, and why.
+- Works with **TradeSkillMaster**, **Auctionator**, **Craftonomics** and **All The Things** (else vendor prices).
+- **/puf** opens options; **/puf check [item]** explains why an item is kept or left.
 - Made for **WoW Forever**.
 
 This addon was made with AI.
@@ -74,11 +74,11 @@ This addon was made with AI.
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.5.2.zip`
+**File:** `dist\PickUpFilter-1.6.0.zip`
 
 **Display name**
 ```
-PickUp Filter 1.5.2
+PickUp Filter 1.6.0
 ```
 
 **Release type:** `Release`
@@ -87,6 +87,12 @@ PickUp Filter 1.5.2
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.6.0
+- **Craftonomics prices:** PickUp Filter can now price loot with **Craftonomics** (including Craftonomics' own auction house scans), in your priority order or highest-price mode.
+- Fixed: only real gathering actions (herbalism, mining, skinning, fishing, opening, pick pocket and disenchanting) count as gathering loot, so casting an attack while looting a mob no longer bypasses your filter.
+- Fixed: Uncommon and better items set to **Always pick up** are now looted most valuable first when bags are nearly full.
+- Fixed: items whose details haven't loaded yet wait briefly before falling back to your unpriced-item rule, and editing your item lists no longer causes redundant redraws.
+
 1.5.2
 - Fixed: characters were saved under their first name only, so characters with the same first name on a realm shared one profile choice and one on/off setting. Each character now has its own, starting from what it shared before.
 - Fixed: when the game didn't give the realm's name at login, a character could run on the Default profile for that session. It now keeps its own profile and on/off setting.

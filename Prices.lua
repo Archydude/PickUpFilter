@@ -7,6 +7,7 @@ local ADDON_NAME, ns = ...
 ns.SOURCES = {
 	{ key = "tsm", name = "TSM" },
 	{ key = "auctionator", name = "Auctionator" },
+	{ key = "craftonomics", name = "Craftonomics" },
 	{ key = "vendor", name = "Vendor price" },
 }
 ns.SOURCE_NAMES = { none = "Nothing" }
@@ -37,6 +38,15 @@ function ns.AuctionatorLoaded()
 	return auctionatorAPI() ~= nil
 end
 
+local function craftonomicsAPI()
+	local api = CraftonomicsAPI
+	return type(api) == "table" and type(api.GetAuctionPrice) == "function" and api or nil
+end
+
+function ns.CraftonomicsLoaded()
+	return craftonomicsAPI() ~= nil
+end
+
 local function tsmPrice(item)
 	if not ns.TSMLoaded() then return end
 	local ok, itemString = pcall(TSM_API.ToItemString, item.link)
@@ -57,6 +67,14 @@ local function auctionatorPrice(item)
 	return value
 end
 
+local function craftonomicsPrice(item)
+	local api = craftonomicsAPI()
+	if not api then return end
+	local arg = item.link or (item.itemID and ("item:" .. item.itemID))
+	if not arg then return end
+	return positive(pcall(api.GetAuctionPrice, arg))
+end
+
 local function vendorPrice(item)
 	if item.sellPrice and item.sellPrice > 0 then return item.sellPrice end
 end
@@ -73,7 +91,7 @@ function ns.PriceLabel(source)
 	return ns.SOURCE_NAMES[source] or source
 end
 
-local GETTERS = { tsm = tsmPrice, auctionator = auctionatorPrice, vendor = vendorPrice }
+local GETTERS = { tsm = tsmPrice, auctionator = auctionatorPrice, craftonomics = craftonomicsPrice, vendor = vendorPrice }
 
 -- What one of `item` is worth under a price rule ("vendor" | "priority" | "highest"), and which
 -- source said so; nil when no source has a price. `item` has link, itemID and sellPrice.
