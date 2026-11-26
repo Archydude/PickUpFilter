@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.1
+- World chests are now filtered normally instead of being picked up whole under **Take everything when gathering** (lockboxes and other items you open are still taken whole).
+- With **Take everything when gathering** on and **Skinning** learned, Beast corpses are now looted whole so you can skin them right away (other mobs in an AoE loot stay filtered).
+
 ## 1.7.0
 - **Full stack or Per item:** choose whether stackable items under **Check value** are judged by what a full stack is worth (using **Whole stack**) or by what each individual item is worth (using **Single item**).
 - **Crafting reagents by profession:** **Crafting reagents** under **Other rules** can now follow the quality rules, always pick up all crafting reagents, or always pick up only the ones your character's professions craft with — with checkboxes to leave individual professions out (such as Cooking).

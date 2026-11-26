@@ -71,7 +71,7 @@ TSM and Auctionator count only while they're loaded. The options page says which
 | Currencies | Always pick up, or leave behind | Always pick up |
 | Items with no price | Pick up, or leave behind (for Check value) | Pick up |
 | Most valuable first | On or off | On |
-| Take everything when gathering | On or off: herbs, ore, fishing and skinning are picked up whole, and so are chests, lockboxes and other things you open | On |
+| Take everything when gathering | On or off: herbs, ore, fishing and skinning are picked up whole, and so are lockboxes, other items you open, and beast corpses when you have Skinning (world chests are filtered normally) | On |
 | Always pick up appearances you haven't collected | On or off: gear with an appearance missing from your collection is picked up whatever its quality or price | On |
 | Always pick up what All The Things says you need | On or off: items **All The Things** counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price. Follows your All The Things settings, and does nothing without it | On |
 | Loot window afterwards | Close it, so the rest stays on the corpse, or leave it open so you can still take something yourself | Close it |

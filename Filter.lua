@@ -147,6 +147,11 @@ ns.On("CHAT_MSG_SKILL", function()
 	if ns.Fire then ns.Fire("SettingChanged", "professions") end
 end)
 
+-- True when the character has profession `id` (SkillLine ID).
+function ns.HasProfession(id)
+	return id ~= nil and myProfessions()[id] == true
+end
+
 -- Sorted list of { id, name } for the character's current professions.
 function ns.MyProfessions()
 	local out = {}

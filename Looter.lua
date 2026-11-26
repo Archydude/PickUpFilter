@@ -58,7 +58,7 @@ local function closeIfDone()
 	end
 end
 
--- Gathering: herbs, ore, fishing, skinning, and things that are opened (chests, lockboxes).
+-- Gathering: herbs, ore, fishing, skinning, disenchanting, and items you open (lockboxes, clams).
 -- A skinned corpse is a creature like a killed one, so skinning is known by the cast that opened
 -- the loot. Only gathering casts count: any other cast just before looting (a shot at the next
 -- enemy while looting the last one) is still a kill's loot.
@@ -70,8 +70,6 @@ local GATHER_SPELLS = {
 	1235236, -- Herb Gathering
 	2575,    -- Mining
 	7620,    -- Fishing
-	3365,    -- Opening
-	22810,   -- Opening - No Text
 	13262,   -- Disenchant
 }
 local gatherNames -- [spell name] = true, filled on the first cast
@@ -100,10 +98,62 @@ ns.On("UNIT_SPELLCAST_SUCCEEDED", function(unit, _, spellID)
 	if unit == "player" and isGatherSpell(spellID) then lastGatherCast = GetTime() end
 end)
 
-local function hasObjectSource(...)
+local function hasItemSource(...)
 	for i = 1, select("#", ...), 2 do
 		local guid = select(i, ...)
-		if type(guid) == "string" and (guid:find("^GameObject") or guid:find("^Item")) then return true end
+		if type(guid) == "string" and guid:find("^Item") then return true end
+	end
+	return false
+end
+
+local SKINNING = 393 -- SkillLine ID for Skinning, so beasts can be cleared for skinning
+local BEAST_TYPES = {
+	Beast = true,
+	Wildtier = true, -- deDE
+	Bestia = true,   -- esES / esMX / itIT
+	["Bête"] = true, -- frFR
+	["야수"] = true,  -- koKR
+	Fera = true,     -- ptBR
+	["Зверь"] = true,-- ruRU
+	["野兽"] = true,  -- zhCN
+	["野獸"] = true,  -- zhTW
+}
+local recentBeasts = {} -- [guid] = true for beasts seen recently
+
+local function recordIfBeast(unit)
+	if not (UnitGUID and UnitCreatureType) then return end
+	local guid = UnitGUID(unit)
+	local kind = UnitCreatureType(unit)
+	if issecretvalue and (issecretvalue(guid) or issecretvalue(kind)) then return end
+	if type(guid) == "string" and kind and BEAST_TYPES[kind] then
+		recentBeasts[guid] = true
+	end
+end
+
+ns.On("PLAYER_TARGET_CHANGED", function() recordIfBeast("target") end)
+ns.On("UPDATE_MOUSEOVER_UNIT", function() recordIfBeast("mouseover") end)
+ns.On("PLAYER_ENTERING_WORLD", function() recentBeasts = {} end)
+
+local function hasBeastSource(...)
+	for i = 1, select("#", ...), 2 do
+		local guid = select(i, ...)
+		if type(guid) == "string" and recentBeasts[guid] then return true end
+	end
+	return false
+end
+
+local function isBeastSlot(slot)
+	if not (ns.HasProfession and ns.HasProfession(SKINNING)) then return false end
+	if GetLootSourceInfo then
+		return hasBeastSource(GetLootSourceInfo(slot))
+	end
+	for _, unit in ipairs({ "mouseover", "target" }) do
+		if UnitIsDead and UnitIsDead(unit) then
+			local kind = UnitCreatureType and UnitCreatureType(unit)
+			if not (issecretvalue and issecretvalue(kind)) and kind and BEAST_TYPES[kind] then
+				return true
+			end
+		end
 	end
 	return false
 end
@@ -113,8 +163,8 @@ local function isGathering()
 	if GetTime() - lastGatherCast <= GATHER_CAST_WINDOW then return true end
 	if GetLootSourceInfo then
 		for slot = 1, GetNumLootItems() do
-			-- Loot from an object in the world, or from an item (a lockbox, something disenchanted).
-			if hasObjectSource(GetLootSourceInfo(slot)) then return true end
+			-- Loot from an item you opened (a lockbox, clam, something disenchanted). World chests stay filtered.
+			if hasItemSource(GetLootSourceInfo(slot)) then return true end
 		end
 	end
 	return false
@@ -122,7 +172,13 @@ end
 
 local function processLoot(current, allowDefer)
 	if session ~= current then return end
-	local takeAll = not ns.char.enabled or (ns.db.gathering and isGathering())
+	local gathering = ns.db.gathering
+	if gathering and ns.HasProfession and ns.HasProfession(SKINNING) then
+		recordIfBeast("mouseover")
+		recordIfBeast("target")
+		recordIfBeast("softinteract")
+	end
+	local takeAll = not ns.char.enabled or (gathering and isGathering())
 
 	-- If any "value"-ruled item isn't cached yet, request its info and retry once briefly
 	-- instead of immediately falling back to db.noPrice.
@@ -130,7 +186,8 @@ local function processLoot(current, allowDefer)
 		local waiting = false
 		for slot = 1, GetNumLootItems() do
 			local item = ns.SlotItem(slot)
-			if item.kind == "item" and not item.locked and not item.known and item.itemID then
+			if item.kind == "item" and not item.locked and not item.known and item.itemID
+				and not (gathering and isBeastSlot(slot)) then
 				local row = ns.QualityRow(item.quality)
 				if row and row.action == "value" then
 					C_Item.RequestLoadItemDataByID(item.itemID)
@@ -149,7 +206,7 @@ local function processLoot(current, allowDefer)
 		local item = ns.SlotItem(slot)
 		if item.kind ~= "none" and not item.locked then
 			local wanted, value, priceName
-			if takeAll then
+			if takeAll or (gathering and isBeastSlot(slot)) then
 				wanted = true
 			else
 				wanted, _, value, priceName = ns.Decide(item)

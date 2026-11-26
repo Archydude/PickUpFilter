@@ -2,10 +2,14 @@
 ArchdudeWhatsNew:Register("PickUpFilter", {
 	title = "PickUp Filter",
 	icon = "Interface\\Icons\\INV_Misc_Bag_10",
-	version = "1.7.0",
+	version = "1.7.1",
 	seen = "PickUpFilterWhatsNew",
 	saved = { "PickUpFilterDB" },
 	changes = {
+		{ "1.7.1",
+			"World chests are now filtered normally instead of being picked up whole under |cffffd100Take everything when gathering|r (lockboxes and other items you open are still taken whole).",
+			"With |cffffd100Take everything when gathering|r on and |cffffd100Skinning|r learned, Beast corpses are now looted whole so you can skin them right away (other mobs in an AoE loot stay filtered).",
+		},
 		{ "1.7.0",
 			"|cffffd100Full stack or Per item:|r choose whether stackable items under |cffffd100Check value|r are judged by what a full stack is worth (using |cffffd100Whole stack|r) or by what each individual item is worth (using |cffffd100Single item|r).",
 			"|cffffd100Crafting reagents by profession:|r |cffffd100Crafting reagents|r under |cffffd100Other rules|r can now follow the quality rules, always pick up all crafting reagents, or always pick up only the ones your character's professions craft with — with checkboxes to leave individual professions out (such as Cooking).",
@@ -43,10 +47,6 @@ ArchdudeWhatsNew:Register("PickUpFilter", {
 		},
 		{ "1.2.0",
 			"New option under Other rules: always pick up crafting reagents, like cloth, herbs, leather and ore, whatever their quality or price. Your Never pick up list still wins. Off from the start.",
-		},
-		{ "1.1.0",
-			"Take everything when gathering: herbs, ore, fishing and skinning are picked up whole, and so are chests, lockboxes and other things you open. On from the start; turn it off under Other rules.",
-			"Gear with an appearance you haven't collected yet is always picked up, whatever its quality or price. Also on from the start, under Other rules.",
 		},
 	},
 })

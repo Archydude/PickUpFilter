@@ -399,7 +399,7 @@ local function buildOtherRules(y)
 	ty = ty - 26
 
 	local gather = checkbox("Take everything when gathering",
-		"Herbs, ore, fishing and skinning are picked up whole, without the rules. So are chests, lockboxes and other things you open.",
+		"Herbs, ore, fishing and skinning are picked up whole, without the rules, and so are lockboxes, other items you open, and beast corpses when you have Skinning. World chests are filtered normally.",
 		function() return ns.db.gathering end, function(v) ns.db.gathering = v end)
 	gather:SetPoint("TOPLEFT", COLUMNS.quality - 4, ty)
 	ty = ty - 28

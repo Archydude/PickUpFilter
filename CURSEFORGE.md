@@ -40,7 +40,7 @@ One row per item quality, from grey to Legendary:
 Defaults: grey and white items need 1s (5s for a full stack); green and better are always picked up.
 
 ### Always picked up
-- **Gathering is never filtered:** herbs, ore, fish, skins, chests and lockboxes come in whole.
+- **Gathering is never filtered:** herbs, ore, fish, skins, lockboxes, and beasts (when Skinning) come in whole.
 - **Uncollected appearances**, even on grey gear.
 - **Crafting reagents:** take all, or only the ones your checked professions craft with.
 - **What All The Things says you need**, if you use it.
@@ -74,11 +74,11 @@ This addon was made with AI.
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.7.0.zip`
+**File:** `dist\PickUpFilter-1.7.1.zip`
 
 **Display name**
 ```
-PickUp Filter 1.7.0
+PickUp Filter 1.7.1
 ```
 
 **Release type:** `Release`
@@ -87,6 +87,10 @@ PickUp Filter 1.7.0
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.7.1
+- World chests are now filtered normally instead of being picked up whole under **Take everything when gathering** (lockboxes and other items you open are still taken whole).
+- With **Take everything when gathering** on and **Skinning** learned, Beast corpses are now looted whole so you can skin them right away (other mobs in an AoE loot stay filtered).
+
 1.7.0
 - **Full stack or Per item:** choose whether stackable items under **Check value** are judged by what a full stack is worth (using **Whole stack**) or by what each individual item is worth (using **Single item**).
 - **Crafting reagents by profession:** **Crafting reagents** under **Other rules** can now follow the quality rules, always pick up all crafting reagents, or always pick up only the ones your character's professions craft with — with checkboxes to leave individual professions out (such as Cooking).
