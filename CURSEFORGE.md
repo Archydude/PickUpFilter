@@ -29,44 +29,44 @@ Auto loot that leaves the junk behind. Pick up only what's worth having, by item
 ```markdown
 ## Auto loot, without the junk
 
-WoW Forever drops a lot of junk. PickUp Filter loots for you and takes only what's worth having. The rest stays on the corpse, so your bags stay clean.
+Mobs drop a lot of junk. PickUp Filter loots for you and takes only what's worth having. The rest stays on the corpse, so your bags stay clean.
 
 ### Rules by quality
-One row for each item quality, from grey to Legendary:
-- **Always pick up**, **never pick up**, or pick up when it's **worth at least** an amount you set, like `1s` or `2g 50s`.
-- Stackables count as a full stack: one linen at 30c, in stacks of 20, is worth 6s.
-- Each quality picks its price: **vendor**, a **priority order** of TSM, Auctionator, Craftonomics and vendor price, or the **highest** of them.
+One row per item quality, from grey to Legendary:
+- **Always pick up**, **never pick up**, or pick up when **worth at least** an amount you set (`1s`, `2g 50s`).
+- Judge stackables as a **Full stack** (30c linen in stacks of 20 counts as 6s) or **Per item**.
+- Price by **vendor**, a **priority order** of TSM, Auctionator, Craftonomics and vendor, or the **highest**.
 
-Out of the box, grey and white items need to be worth 1s, or 5s for a full stack, and green and better are always picked up.
+Defaults: grey and white items need 1s (5s for a full stack); green and better are always picked up.
 
 ### Always picked up
 - **Gathering is never filtered:** herbs, ore, fish, skins, chests and lockboxes come in whole.
-- **Appearances you haven't collected**, even on grey gear.
-- **Crafting reagents** too, if you like.
+- **Uncollected appearances**, even on grey gear.
+- **Crafting reagents:** take all, or only the ones your checked professions craft with.
 - **What All The Things says you need**, if you use it.
 
 ### Your own lists
-**Always pick up** and **Never pick up** lists win over every other rule. Find any item in the game by name, even ones you've never had. Each list opens in its own window.
+**Always pick up** and **Never pick up** lists override every rule. Search any item in the game by name, even ones you've never had, or view each list in its own window.
 
 ### Profiles
-Each character uses a whole filter of its own, or shares one with your other characters.
+Each character uses its own filter, or shares one across characters.
 
 ### More choices
-- Quest items, currencies and unpriced items get their own rules.
-- The most valuable items go into your bags first, so full bags leave the cheap stuff behind.
-- Leave the loot window open after looting if you'd rather pick through what's left.
-- An optional chat line lists what was left behind.
+- Separate rules for quest items, currencies and unpriced items.
+- Picks up the most valuable items first, so full bags leave the cheap stuff behind.
+- Leave the loot window open afterwards if you want to take something yourself.
+- Optional chat line listing what stayed behind.
 - **Hold Shift** while looting to take everything.
 
 ### Good to know
-- The game's own Auto Loot has to be off; PickUp Filter offers to turn it off.
+- The game's Auto Loot has to be off; PickUp Filter offers to turn it off.
 - Works with **TradeSkillMaster**, **Auctionator**, **Craftonomics** and **All The Things** (else vendor prices).
 - **/puf** opens options; **/puf check [item]** explains why an item is kept or left.
-- Made for **WoW Forever**.
+- Made for **WoW Forever** and **Retail**.
 
 This addon was made with AI.
 
-**Feedback and bug reports are welcome** in the comments.
+**Feedback, suggestions, and bug reports are welcome** in the comments or by sending me a message on Discord.
 ```
 ---
 
@@ -74,19 +74,24 @@ This addon was made with AI.
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.6.1.zip`
+**File:** `dist\PickUpFilter-1.7.0.zip`
 
 **Display name**
 ```
-PickUp Filter 1.6.1
+PickUp Filter 1.7.0
 ```
 
 **Release type:** `Release`
 
-**Game versions:** Forever `1.60.1`.
+**Game versions:** Retail `12.1.5`, Forever `1.60.1`.
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.7.0
+- **Full stack or Per item:** choose whether stackable items under **Check value** are judged by what a full stack is worth (using **Whole stack**) or by what each individual item is worth (using **Single item**).
+- **Crafting reagents by profession:** **Crafting reagents** under **Other rules** can now follow the quality rules, always pick up all crafting reagents, or always pick up only the ones your character's professions craft with — with checkboxes to leave individual professions out (such as Cooking).
+- **Retail support:** PickUp Filter now also supports World of Warcraft Retail alongside WoW Forever.
+
 1.6.1
 - Fixed: AoE looting a mob alongside a chest or gathering node no longer bypasses your filter for the whole pull, and Pick Pocket loot is filtered normally.
 - Fixed: you can click with an item on your cursor to drop it into the Always pick up or Never pick up boxes, and a character's profile resolves reliably at login.

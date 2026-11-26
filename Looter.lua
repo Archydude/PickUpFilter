@@ -38,7 +38,13 @@ local function reportLeft(left)
 		if (item.count or 1) > 1 then text = text .. " x" .. item.count end
 		if entry.value then
 			local worth = ns.Money(entry.value)
-			if item.stackable then worth = "stack of " .. item.maxStack .. ": " .. worth end
+			if item.stackable then
+				if ns.db.stackValue ~= "each" then
+					worth = "stack of " .. item.maxStack .. ": " .. worth
+				else
+					worth = worth .. " each"
+				end
+			end
 			text = text .. " (" .. worth .. (entry.priceName and ", " .. entry.priceName or "") .. ")"
 		end
 		parts[#parts + 1] = text
@@ -149,10 +155,13 @@ local function processLoot(current, allowDefer)
 				wanted, _, value, priceName = ns.Decide(item)
 			end
 			local droppedValue
-			if value and item.stackable and (item.maxStack or 1) > 0 then
-				droppedValue = (value / item.maxStack) * (item.count or 1)
-			elseif value then
-				droppedValue = value * (item.count or 1)
+			if value then
+				local asStack = item.stackable and ns.db.stackValue ~= "each"
+				if asStack and (item.maxStack or 1) > 0 then
+					droppedValue = (value / item.maxStack) * (item.count or 1)
+				else
+					droppedValue = value * (item.count or 1)
+				end
 			end
 			local entry = { slot = slot, item = item, value = value, droppedValue = droppedValue, priceName = priceName }
 			table.insert(wanted and take or left, entry)

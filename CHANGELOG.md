@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.0
+- **Full stack or Per item:** choose whether stackable items under **Check value** are judged by what a full stack is worth (using **Whole stack**) or by what each individual item is worth (using **Single item**).
+- **Crafting reagents by profession:** **Crafting reagents** under **Other rules** can now follow the quality rules, always pick up all crafting reagents, or always pick up only the ones your character's professions craft with — with checkboxes to leave individual professions out (such as Cooking).
+- **Retail support:** PickUp Filter now also supports World of Warcraft Retail alongside WoW Forever.
+
 ## 1.6.1
 - Fixed: AoE looting a mob alongside a chest or gathering node no longer bypasses your filter for the whole pull, and Pick Pocket loot is filtered normally.
 - Fixed: you can click with an item on your cursor to drop it into the Always pick up or Never pick up boxes, and a character's profile resolves reliably at login.

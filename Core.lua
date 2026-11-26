@@ -71,6 +71,7 @@ end
 -- A profile: one whole filter. Characters each use one profile, and several can share one.
 ns.DEFAULTS = {
 	quality = ns.DefaultQualityRules(),
+	stackValue = "full",     -- "full" | "each": how stackable items are priced under Check value
 	priority = { "tsm", "auctionator", "vendor" }, -- price sources tried in order, "none" skips
 	tsmSource = "dbmarket",
 	quest = "always",        -- "always" | "rules": quest items
@@ -80,8 +81,9 @@ ns.DEFAULTS = {
 	reportLeft = false,      -- chat line listing what was left behind
 	gathering = true,        -- take everything from herbs, ore, fishing, skinning and opened things
 	appearances = true,      -- always pick up items with an uncollected appearance
-	reagents = false,        -- always pick up crafting reagents
-	att = true,              -- always pick up what All The Things says you still need
+	reagents = "rules",      -- "rules" | "all" | "mine": always pick up crafting reagents
+	reagentSkip = {},        -- [skillLineID] = true: character professions unchecked under "my professions"
+	att = true,              -- always pick up what All The Things says you need
 	afterLoot = "close",     -- "close" | "open": the loot window once what's wanted is picked up
 	always = {},             -- [itemID] = true: always picked up
 	never = {},              -- [itemID] = true: always left behind
@@ -130,6 +132,11 @@ function ns.CleanProfile(profile)
 	fill(profile, ns.DEFAULTS)
 	for key in pairs(profile) do
 		if ns.DEFAULTS[key] == nil then profile[key] = nil end
+	end
+	if profile.reagents == true then
+		profile.reagents = "all"
+	elseif profile.reagents == false then
+		profile.reagents = "rules"
 	end
 	if type(profile.priority) ~= "table" or #profile.priority ~= 3 then profile.priority = copy(ns.DEFAULTS.priority) end
 	return profile

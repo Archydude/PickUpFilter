@@ -56,7 +56,7 @@ end
 -- worth when the filter priced it.
 --   take   true | false
 --   reason text for the player, like "Poor: worth 3c, needs 1s"
---   value  copper for one item, or a full stack of one that stacks; or nil
+--   value  copper for one item, or a full stack when stackValue is "full"; or nil
 -- True when the item has an appearance the account hasn't collected yet.
 function ns.UncollectedAppearance(link)
 	local transmog = C_TransmogCollection
@@ -85,6 +85,98 @@ function ns.ATTNeeds(link)
 	return (group.costTotal or 0) > 0
 end
 
+---------------------------------------------------------------------------
+-- Character's professions, for "Always pick up (my professions)" reagents
+---------------------------------------------------------------------------
+
+local myProfs
+local enteredWorld = (IsLoggedIn and IsLoggedIn()) or false
+
+local function professionName(id)
+	local names = ns.PROFESSION_NAMES and GetLocale and ns.PROFESSION_NAMES[GetLocale()]
+	return (names and names[id]) or (ns.PROFESSIONS and ns.PROFESSIONS[id])
+end
+
+local function readMyProfessions()
+	myProfs = {}
+	local profs = ns.PROFESSIONS
+	if not profs then return end
+	local aliases = ns.PROFESSION_ALIASES or {}
+	local byName = {}
+	for id in pairs(profs) do
+		local name = professionName(id)
+		if name then byName[name] = id end
+	end
+	if GetProfessions and GetProfessionInfo then
+		for _, index in pairs({ GetProfessions() }) do
+			local name, _, _, _, _, _, skillLine = GetProfessionInfo(index)
+			local id = (skillLine and (profs[skillLine] and skillLine or aliases[skillLine])) or byName[name]
+			if id then myProfs[id] = true end
+		end
+	end
+	if GetNumSkillLines and GetSkillLineInfo then
+		for i = 1, GetNumSkillLines() do
+			local name, isHeader = GetSkillLineInfo(i)
+			if name and not isHeader and byName[name] then
+				myProfs[byName[name]] = true
+			end
+		end
+	end
+end
+
+local function myProfessions()
+	if not myProfs then readMyProfessions() end
+	local list = myProfs
+	-- Right after login the game may not have told us the character's skills yet; ask again next time
+	-- rather than keep an empty list until the player enters the world.
+	if not enteredWorld and next(myProfs) == nil then myProfs = nil end
+	return list
+end
+
+ns.On("PLAYER_ENTERING_WORLD", function()
+	enteredWorld = true
+	myProfs = nil
+	if ns.Fire then ns.Fire("SettingChanged", "professions") end
+end)
+ns.On("SKILL_LINES_CHANGED", function()
+	myProfs = nil
+	if ns.Fire then ns.Fire("SettingChanged", "professions") end
+end)
+ns.On("CHAT_MSG_SKILL", function()
+	myProfs = nil
+	if ns.Fire then ns.Fire("SettingChanged", "professions") end
+end)
+
+-- Sorted list of { id, name } for the character's current professions.
+function ns.MyProfessions()
+	local out = {}
+	for id in pairs(myProfessions()) do
+		local name = professionName(id)
+		if name then out[#out + 1] = { id = id, name = name } end
+	end
+	table.sort(out, function(a, b) return a.name < b.name end)
+	return out
+end
+
+-- Returns the name(s) of the character's profession(s) that craft with `itemID`, or nil.
+function ns.ReagentForMyProfession(itemID)
+	local list = itemID and ns.REAGENT_PROFS and ns.REAGENT_PROFS[itemID]
+	if not list then return end
+	local mine = myProfessions()
+	local skip = ns.db and ns.db.reagentSkip
+	local matched
+	for _, profID in ipairs(list) do
+		if mine[profID] and not (skip and skip[profID]) then
+			local name = professionName(profID)
+			if name then
+				matched = matched or {}
+				matched[#matched + 1] = name
+			end
+		end
+	end
+	if matched then return table.concat(matched, ", ") end
+end
+
 function ns.Decide(item)
 	local db = ns.db
 	if item.kind == "money" then return true, "money" end
@@ -100,7 +192,14 @@ function ns.Decide(item)
 	if db.appearances and ns.UncollectedAppearance(item.link) then
 		return true, "appearance you haven't collected"
 	end
-	if db.reagents and item.reagent then return true, "crafting reagent" end
+	if item.reagent then
+		if db.reagents == "all" or db.reagents == true then
+			return true, "crafting reagent"
+		elseif db.reagents == "mine" then
+			local prof = ns.ReagentForMyProfession(item.itemID)
+			if prof then return true, "crafting reagent for " .. prof end
+		end
+	end
 	if db.att and ns.ATTNeeds(item.link) then return true, "All The Things says you need it" end
 
 	local row = ns.QualityRow(item.quality)
@@ -116,12 +215,14 @@ function ns.Decide(item)
 		return true, label .. ": no price, picked up"
 	end
 
-	-- Items that stack are worth what a full stack of them would be, however many dropped.
-	local value = item.stackable and each * item.maxStack or each
-	local needed = item.stackable and row.stack or row.single
-	local what = item.stackable and "a stack of " .. item.maxStack .. " is worth " or "worth "
+	-- Items that stack are worth a full stack in "full" mode, or one item in "each" mode.
+	local asStack = item.stackable and db.stackValue ~= "each"
+	local value = asStack and each * item.maxStack or each
+	local needed = asStack and row.stack or row.single
+	local what = asStack and ("a stack of " .. item.maxStack .. " is worth ") or "worth "
+	local suffix = (item.stackable and not asStack) and " each" or ""
 	local priceName = ns.PriceLabel(source)
-	local text = label .. ": " .. what .. ns.MoneyText(value) .. " (" .. priceName .. "), needs " .. ns.MoneyText(needed)
+	local text = label .. ": " .. what .. ns.MoneyText(value) .. suffix .. " (" .. priceName .. "), needs " .. ns.MoneyText(needed)
 	return value >= needed, text, value, priceName
 end
 

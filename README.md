@@ -2,7 +2,7 @@
 
 Auto loot that leaves the junk behind. Loot as usual: PickUp Filter picks up what's worth having and leaves the rest on the corpse, then closes the loot window (or leaves it open, if you'd rather). You decide what counts as worth having, by item quality and price, with your own lists of items to always or never pick up.
 
-Made for WoW Forever.
+Made for WoW Forever and Retail.
 
 ## Getting started
 
@@ -28,18 +28,22 @@ Whether the filter is on, and the minimap button, aren't part of a profile: on/o
 
 ## Rules by quality
 
-The options page (`/puf`) has a table with a row for each item quality: Poor, Common, Uncommon, Rare, Epic, and Legendary and up. Each row has:
+The options page (`/puf`) has a **Stackable items** choice and a table with a row for each item quality: Poor, Common, Uncommon, Rare, Epic, and Legendary and up.
+
+- **Stackable items:** **Full stack** (default) judges stackable items by what a full stack is worth against the **Whole stack** column; **Per item** judges every item by what one of it is worth against the **Single item** column.
+
+Each row has:
 
 | Column | Choices |
 |---|---|
 | Action | **Check value**, **Always pick up** or **Never pick up** |
 | Price | **Vendor price**, **Priority order** or **Highest price** (for Check value) |
-| Single item | What an item that doesn't stack has to be worth to be picked up |
-| Whole stack | What a full stack of an item that stacks has to be worth, however many dropped: one cloth worth 30c that stacks to 20 is worth 6s |
+| Single item | What a non-stackable item has to be worth (or any item, when **Stackable items** is set to **Per item**) |
+| Whole stack | What a full stack of a stackable item has to be worth under **Full stack**, however many dropped: one cloth worth 30c that stacks to 20 is worth 6s |
 
 Amounts are typed like `1g 20s 5c`, `50s` or `25c`. Clear a box to put it back to the default filter's amount.
 
-The default filter:
+The default filter uses **Full stack**:
 
 | Quality | Action | Price | Single item | Whole stack |
 |---|---|---|---|---|
@@ -63,12 +67,12 @@ TSM and Auctionator count only while they're loaded. The options page says which
 | Rule | Choices | Default |
 |---|---|---|
 | Quest items | Always pick up, or follow the quality rules | Always pick up |
+| Crafting reagents | Follow the quality rules, always pick up all crafting reagents, or always pick up only the ones your character's professions craft with (with checkboxes to leave any profession out, such as Cooking) | Follow the quality rules |
 | Currencies | Always pick up, or leave behind | Always pick up |
 | Items with no price | Pick up, or leave behind (for Check value) | Pick up |
 | Most valuable first | On or off | On |
 | Take everything when gathering | On or off: herbs, ore, fishing and skinning are picked up whole, and so are chests, lockboxes and other things you open | On |
 | Always pick up appearances you haven't collected | On or off: gear with an appearance missing from your collection is picked up whatever its quality or price | On |
-| Always pick up crafting reagents | On or off: anything a profession can craft with is picked up whatever its quality or price, like cloth, herbs and leather | Off |
 | Always pick up what All The Things says you need | On or off: items **All The Things** counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price. Follows your All The Things settings, and does nothing without it | On |
 | Loot window afterwards | Close it, so the rest stays on the corpse, or leave it open so you can still take something yourself | Close it |
 | Say what was left behind | On or off: a chat line after looting lists what stayed behind, its value and which price that was | Off |

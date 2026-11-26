@@ -178,6 +178,11 @@ local PRICE_RULES = {
 	{ "highest", "Highest price" },
 }
 
+local STACK_VALUES = {
+	{ "full", "Full stack" },
+	{ "each", "Per item" },
+}
+
 local COLUMNS = { quality = 20, action = 140, price = 280, single = 425, stack = 525 }
 
 local function qualityText(quality)
@@ -188,15 +193,33 @@ end
 
 local function buildRulesTable(y)
 	heading("Rules by quality", y)
-	y = y - 28
+	y = y - 30
+	local stackLabel = text(content, "GameFontHighlight", "Stackable items")
+	stackLabel:SetPoint("TOPLEFT", COLUMNS.quality, y - 6)
+	local stackMode = dropdown(content, 130, STACK_VALUES,
+		function() return ns.db.stackValue == "each" and "each" or "full" end,
+		function(v) ns.db.stackValue = v end)
+	stackMode:SetPoint("TOPLEFT", COLUMNS.action, y)
+	tooltip(stackMode, "Stackable items",
+		"Full stack judges stackable items by what a full stack is worth, using the Whole stack column. "
+			.. "Per item judges every item by what one of it is worth, using the Single item column.")
+	y = y - 34
+
 	local headers = {
 		{ "quality", "Quality" }, { "action", "Action" }, { "price", "Price" },
 		{ "single", "Single item" }, { "stack", "Whole stack" },
 	}
+	local stackHeader
 	for _, h in ipairs(headers) do
 		local fs = text(content, "GameFontNormal", h[2])
 		fs:SetPoint("TOPLEFT", COLUMNS[h[1]], y)
+		if h[1] == "stack" then stackHeader = fs end
 	end
+	table.insert(refreshers, function()
+		if stackHeader then
+			stackHeader:SetFontObject(ns.db.stackValue == "each" and "GameFontDisable" or "GameFontNormal")
+		end
+	end)
 	y = y - 20
 
 	for _, q in ipairs(ns.QUALITIES) do
@@ -223,17 +246,19 @@ local function buildRulesTable(y)
 
 		table.insert(refreshers, function()
 			local checks = rule().action == "value"
+			local usesStack = checks and ns.db.stackValue ~= "each"
 			price:SetEnabled(checks)
-			for _, box in ipairs({ single, stack }) do
-				box:SetEnabled(checks)
-				box:SetTextColor(checks and 1 or 0.5, checks and 1 or 0.5, checks and 1 or 0.5)
-			end
+			single:SetEnabled(checks)
+			single:SetTextColor(checks and 1 or 0.5, checks and 1 or 0.5, checks and 1 or 0.5)
+			stack:SetEnabled(usesStack)
+			stack:SetTextColor(usesStack and 1 or 0.5, usesStack and 1 or 0.5, usesStack and 1 or 0.5)
 		end)
 		y = y - ROW_HEIGHT
 	end
 
 	local reset = button(content, "Reset to default filter", 180, function()
 		ns.db.quality = ns.DefaultQualityRules()
+		ns.db.stackValue = ns.DEFAULTS.stackValue
 		refreshAll()
 		ns.Print("rules table set back to the default filter.")
 	end)
@@ -244,8 +269,8 @@ local function buildRulesTable(y)
 	y = y - 36
 
 	local help = text(content, "GameFontHighlight",
-		"|cffffd100Check value|r picks up an item when it's worth at least the amount. |cffffd100Single item|r is for items that don't stack. "
-			.. "|cffffd100Whole stack|r is for items that stack, valued as a full stack however many dropped: one cloth worth 30c in stacks of 20 is worth 6s.",
+		"|cffffd100Check value|r picks up an item when it's worth at least the amount. With |cffffd100Full stack|r, stackable items are valued as a full stack (one cloth worth 30c in stacks of 20 is worth 6s) and checked against |cffffd100Whole stack|r. "
+			.. "With |cffffd100Per item|r, every item is valued as one item and checked against |cffffd100Single item|r.",
 		WIDTH - 30)
 	help:SetPoint("TOPLEFT", COLUMNS.quality, y)
 	return y - help:GetStringHeight() - 24
@@ -328,64 +353,141 @@ end
 local function choiceRow(y, label, help, choices, key)
 	local fs = text(content, "GameFontHighlight", label)
 	fs:SetPoint("TOPLEFT", COLUMNS.quality, y - 6)
-	local menu = dropdown(content, 200, choices, function() return ns.db[key] end, function(v) ns.db[key] = v end)
+	local menu = dropdown(content, 250, choices, function() return ns.db[key] end, function(v) ns.db[key] = v end)
 	menu:SetPoint("TOPLEFT", COLUMNS.price - 100, y)
 	tooltip(menu, label, help)
 	return y - 32
 end
 
 local function buildOtherRules(y)
+	local root = content
 	heading("Other rules", y)
 	y = y - 30
 	y = choiceRow(y, "Quest items",
 		"Always pick up quest items, or treat them like any other item of their quality.",
 		{ { "always", "Always pick up" }, { "rules", "Follow the quality rules" } }, "quest")
-	y = choiceRow(y, "Currencies", "Currencies that drop, like badges and tokens.",
+	y = choiceRow(y, "Crafting reagents",
+		"Always pick up crafting reagents (all of them, or only the ones your character's checked professions craft with), or treat them like any other item of their quality.",
+		{
+			{ "rules", "Follow the quality rules" },
+			{ "all", "Always pick up (all)" },
+			{ "mine", "Always pick up (my professions)" },
+		}, "reagents")
+
+	local profY = y
+	local profBox = CreateFrame("Frame", nil, root)
+	profBox:SetPoint("TOPLEFT", root, "TOPLEFT", 0, profY)
+	profBox:SetSize(WIDTH, 1)
+	local emptyProfs = text(profBox, "GameFontDisable", "This character has no professions yet.")
+	emptyProfs:SetPoint("TOPLEFT", COLUMNS.price - 100, -4)
+	emptyProfs:Hide()
+	local profChecks = {}
+
+	local tail = CreateFrame("Frame", nil, root)
+	content = tail
+	local ty = 0
+	ty = choiceRow(ty, "Currencies", "Currencies that drop, like badges and tokens.",
 		{ { "always", "Always pick up" }, { "never", "Leave behind" } }, "currency")
-	y = choiceRow(y, "Items with no price",
+	ty = choiceRow(ty, "Items with no price",
 		"Items under Check value that no price source has a price for. Picking them up means nothing rare goes missing just because nobody has sold one yet.",
 		{ { "loot", "Pick up" }, { "leave", "Leave behind" } }, "noPrice")
-	y = choiceRow(y, "Loot window afterwards",
+	ty = choiceRow(ty, "Loot window afterwards",
 		"Once what you want is picked up: close the loot window so the rest stays on the corpse, or leave it open so you can still take something yourself.",
 		{ { "close", "Close it" }, { "open", "Leave it open" } }, "afterLoot")
 	local money = text(content, "GameFontHighlight", "Money is always picked up.")
-	money:SetPoint("TOPLEFT", COLUMNS.quality, y - 4)
-	y = y - 26
+	money:SetPoint("TOPLEFT", COLUMNS.quality, ty - 4)
+	ty = ty - 26
 
 	local gather = checkbox("Take everything when gathering",
 		"Herbs, ore, fishing and skinning are picked up whole, without the rules. So are chests, lockboxes and other things you open.",
 		function() return ns.db.gathering end, function(v) ns.db.gathering = v end)
-	gather:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
-	y = y - 28
+	gather:SetPoint("TOPLEFT", COLUMNS.quality - 4, ty)
+	ty = ty - 28
 	local looks = checkbox("Always pick up appearances you haven't collected",
 		"Gear with an appearance missing from your collection is picked up whatever its quality or price.",
 		function() return ns.db.appearances end, function(v) ns.db.appearances = v end)
-	looks:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
-	y = y - 28
-	local reagents = checkbox("Always pick up crafting reagents",
-		"Anything a profession can craft with is picked up whatever its quality or price, like cloth, herbs and leather.",
-		function() return ns.db.reagents end, function(v) ns.db.reagents = v end)
-	reagents:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
-	y = y - 28
+	looks:SetPoint("TOPLEFT", COLUMNS.quality - 4, ty)
+	ty = ty - 28
 	local att = checkbox("Always pick up what All The Things says you need",
 		"Items All The Things counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price. Follows your All The Things settings. Needs All The Things.",
 		function() return ns.db.att end, function(v) ns.db.att = v end)
-	att:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
-	y = y - 28
+	att:SetPoint("TOPLEFT", COLUMNS.quality - 4, ty)
+	ty = ty - 28
 	local first = checkbox("Most valuable first",
 		"Picks up the most valuable items first, so when your bags fill up, what's left behind is the cheap stuff.",
 		function() return ns.db.valuableFirst end, function(v) ns.db.valuableFirst = v end)
-	first:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
-	y = y - 28
+	first:SetPoint("TOPLEFT", COLUMNS.quality - 4, ty)
+	ty = ty - 28
 	local report = checkbox("Say what was left behind",
 		"After looting, a chat line lists what was left behind and what it was worth.",
 		function() return ns.db.reportLeft end, function(v) ns.db.reportLeft = v end)
-	report:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
-	y = y - 28
+	report:SetPoint("TOPLEFT", COLUMNS.quality - 4, ty)
+	ty = ty - 28
 	local minimap = checkbox("Show minimap button", "Same as /puf minimap.",
 		function() return not ns.global.minimap.hide end, function(v) ns.SetMinimapShown(v) end)
-	minimap:SetPoint("TOPLEFT", COLUMNS.quality - 4, y)
-	return y - 44
+	minimap:SetPoint("TOPLEFT", COLUMNS.quality - 4, ty)
+	ty = ty - 44
+	content = root
+
+	local function getProfCheck(index)
+		if profChecks[index] then return profChecks[index] end
+		local cb = CreateFrame("CheckButton", nil, profBox, "UICheckButtonTemplate")
+		cb.label = text(cb, "GameFontHighlight")
+		cb.label:SetPoint("LEFT", cb, "RIGHT", 4, 1)
+		cb:SetScript("OnClick", function(self)
+			if not self.profID then return end
+			ns.db.reagentSkip = ns.db.reagentSkip or {}
+			ns.db.reagentSkip[self.profID] = (not self:GetChecked()) or nil
+		end)
+		cb:HookScript("OnEnter", function(self)
+			if not self.profName then return end
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+			GameTooltip:SetText(self.profName, 1, 1, 1)
+			GameTooltip:AddLine("Always pick up crafting reagents used by " .. self.profName .. ".", nil, nil, nil, true)
+			GameTooltip:Show()
+		end)
+		cb:HookScript("OnLeave", function() GameTooltip:Hide() end)
+		profChecks[index] = cb
+		return cb
+	end
+
+	local function updateTail(tailBottom)
+		local profHeight = 0
+		if ns.db.reagents == "mine" then
+			local profs = ns.MyProfessions and ns.MyProfessions() or {}
+			if #profs == 0 then
+				for _, cb in ipairs(profChecks) do cb:Hide() end
+				emptyProfs:Show()
+				profHeight = 24
+			else
+				emptyProfs:Hide()
+				for i, prof in ipairs(profs) do
+					local cb = getProfCheck(i)
+					local col = (i - 1) % 2
+					local row = math.floor((i - 1) / 2)
+					cb.profID = prof.id
+					cb.profName = prof.name
+					cb.label:SetText(prof.name)
+					cb:SetHitRectInsets(0, -cb.label:GetStringWidth() - 8, 0, 0)
+					cb:ClearAllPoints()
+					cb:SetPoint("TOPLEFT", profBox, "TOPLEFT", COLUMNS.price - 104 + col * 215, -row * 26)
+					cb:SetChecked(not (ns.db.reagentSkip and ns.db.reagentSkip[prof.id]))
+					cb:Show()
+				end
+				for i = #profs + 1, #profChecks do profChecks[i]:Hide() end
+				profHeight = math.ceil(#profs / 2) * 26 + 4
+			end
+			profBox:SetHeight(profHeight)
+			profBox:Show()
+		else
+			profBox:Hide()
+		end
+		tail:ClearAllPoints()
+		tail:SetPoint("TOPLEFT", root, "TOPLEFT", 0, profY - profHeight)
+		return profY - profHeight + tailBottom
+	end
+
+	return tail, ty, updateTail
 end
 
 ---------------------------------------------------------------------------
@@ -1109,11 +1211,17 @@ local function build()
 	y = buildProfiles(y)
 	y = buildRulesTable(y)
 	y = buildPrices(y)
-	y = buildOtherRules(y)
-	local listsBottom = buildLists(y)
+	local tail, tailY, updateTail = buildOtherRules(y)
+	local rootContent = content
+	content = tail
+	local listsBottom = buildLists(tailY)
+	content = rootContent
+	local tailBottom = listsBottom()
+	tail:SetSize(WIDTH + 20, -tailBottom)
 
 	table.insert(refreshers, function()
-		content:SetHeight(-listsBottom() + 24)
+		local bottom = updateTail(tailBottom)
+		content:SetHeight(-bottom + 24)
 	end)
 
 	panel:SetScript("OnShow", refreshAll)
