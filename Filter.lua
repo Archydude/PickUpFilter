@@ -61,11 +61,25 @@ end
 function ns.UncollectedAppearance(link)
 	local transmog = C_TransmogCollection
 	if not link or not transmog then return false end
-	local _, sourceID = transmog.GetItemInfo(link)
+	local appearanceID, sourceID = transmog.GetItemInfo(link)
 	if not sourceID then return false end
+	if transmog.PlayerHasTransmogItemModifiedAppearance(sourceID) then return false end
 	local info = transmog.GetAppearanceInfoBySource(sourceID)
 	if info then return not info.appearanceIsCollected end
-	return not transmog.PlayerHasTransmogItemModifiedAppearance(sourceID)
+	local visualID = appearanceID
+	if transmog.GetSourceInfo then
+		local sourceInfo = transmog.GetSourceInfo(sourceID)
+		if sourceInfo then
+			if sourceInfo.isCollected then return false end
+			if not visualID or visualID == 0 then visualID = sourceInfo.visualID end
+		end
+	end
+	if visualID and visualID ~= 0 and transmog.GetAllAppearanceSources then
+		for _, id in ipairs(transmog.GetAllAppearanceSources(visualID) or {}) do
+			if transmog.PlayerHasTransmogItemModifiedAppearance(id) then return false end
+		end
+	end
+	return true
 end
 
 -- All The Things: loaded, and offering its lookup to other addons.

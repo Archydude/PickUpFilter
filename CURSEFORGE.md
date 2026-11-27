@@ -74,11 +74,11 @@ This addon was made with AI.
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.7.1.zip`
+**File:** `dist\PickUpFilter-1.7.2.zip`
 
 **Display name**
 ```
-PickUp Filter 1.7.1
+PickUp Filter 1.7.2
 ```
 
 **Release type:** `Release`
@@ -87,6 +87,9 @@ PickUp Filter 1.7.1
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.7.2
+- Fixed: **Always pick up appearances you haven't collected** no longer picks up gear whose appearance your account already collected from another item when your current character can't equip that weapon or armor type.
+
 1.7.1
 - World chests are now filtered normally instead of being picked up whole under **Take everything when gathering** (lockboxes and other items you open are still taken whole).
 - With **Take everything when gathering** on and **Skinning** learned, Beast corpses are now looted whole so you can skin them right away (other mobs in an AoE loot stay filtered).

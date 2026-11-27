@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.7.2
+- Fixed: **Always pick up appearances you haven't collected** no longer picks up gear whose appearance your account already collected from another item when your current character can't equip that weapon or armor type.
+
 ## 1.7.1
 - World chests are now filtered normally instead of being picked up whole under **Take everything when gathering** (lockboxes and other items you open are still taken whole).
 - With **Take everything when gathering** on and **Skinning** learned, Beast corpses are now looted whole so you can skin them right away (other mobs in an AoE loot stay filtered).

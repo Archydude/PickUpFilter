@@ -2,10 +2,13 @@
 ArchdudeWhatsNew:Register("PickUpFilter", {
 	title = "PickUp Filter",
 	icon = "Interface\\Icons\\INV_Misc_Bag_10",
-	version = "1.7.1",
+	version = "1.7.2",
 	seen = "PickUpFilterWhatsNew",
 	saved = { "PickUpFilterDB" },
 	changes = {
+		{ "1.7.2",
+			"Fixed: |cffffd100Always pick up appearances you haven't collected|r no longer picks up gear whose appearance your account already collected from another item when your current character can't equip that weapon or armor type.",
+		},
 		{ "1.7.1",
 			"World chests are now filtered normally instead of being picked up whole under |cffffd100Take everything when gathering|r (lockboxes and other items you open are still taken whole).",
 			"With |cffffd100Take everything when gathering|r on and |cffffd100Skinning|r learned, Beast corpses are now looted whole so you can skin them right away (other mobs in an AoE loot stay filtered).",
@@ -44,9 +47,6 @@ ArchdudeWhatsNew:Register("PickUpFilter", {
 		},
 		{ "1.3.0",
 			"New option under Other rules: always pick up what |cffffd100All The Things|r says you need. Items it counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price, following your All The Things settings. On from the start; it does nothing without All The Things.",
-		},
-		{ "1.2.0",
-			"New option under Other rules: always pick up crafting reagents, like cloth, herbs, leather and ore, whatever their quality or price. Your Never pick up list still wins. Off from the start.",
 		},
 	},
 })
