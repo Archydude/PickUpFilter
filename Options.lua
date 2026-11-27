@@ -364,7 +364,7 @@ local function buildOtherRules(y)
 	heading("Other rules", y)
 	y = y - 30
 	y = choiceRow(y, "Quest items",
-		"Always pick up quest items, or treat them like any other item of their quality.",
+		"Always pick up quest items (including regular items still needed to finish an active quest objective, until you have enough), or treat them like any other item of their quality.",
 		{ { "always", "Always pick up" }, { "rules", "Follow the quality rules" } }, "quest")
 	y = choiceRow(y, "Crafting reagents",
 		"Always pick up crafting reagents (all of them, or only the ones your character's checked professions craft with), or treat them like any other item of their quality.",

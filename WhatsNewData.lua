@@ -2,10 +2,13 @@
 ArchdudeWhatsNew:Register("PickUpFilter", {
 	title = "PickUp Filter",
 	icon = "Interface\\Icons\\INV_Misc_Bag_10",
-	version = "1.7.2",
+	version = "1.7.3",
 	seen = "PickUpFilterWhatsNew",
 	saved = { "PickUpFilterDB" },
 	changes = {
+		{ "1.7.3",
+			"|cffffd100Quest items: Always pick up|r now also picks up regular items needed to finish an active quest objective (like Okra for Westfall Stew), sums the required amount when multiple active quests need the same item, and stops once you have enough.",
+		},
 		{ "1.7.2",
 			"Fixed: |cffffd100Always pick up appearances you haven't collected|r no longer picks up gear whose appearance your account already collected from another item when your current character can't equip that weapon or armor type.",
 		},
@@ -44,9 +47,6 @@ ArchdudeWhatsNew:Register("PickUpFilter", {
 			"Items that stack are now judged by what a full stack would be worth, however many dropped: one cloth worth 30c that stacks to 20 counts as 6s. The default |cffffd100Whole stack|r amount is now 5s, and rules still on the old 1s default move to 5s.",
 			"New TSM price: |cffffd100Region sale average|r, what an item actually sells for across your region.",
 			"The \"left behind\" chat line and |cffffd100/puf check|r now say which price they used, like \"TSM market value\" or \"vendor price\".",
-		},
-		{ "1.3.0",
-			"New option under Other rules: always pick up what |cffffd100All The Things|r says you need. Items it counts as missing from your collection, or needed for something you haven't collected yet, are picked up whatever their quality or price, following your All The Things settings. On from the start; it does nothing without All The Things.",
 		},
 	},
 })

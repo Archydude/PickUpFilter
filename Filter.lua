@@ -196,7 +196,86 @@ function ns.ReagentForMyProfession(itemID)
 	if matched then return table.concat(matched, ", ") end
 end
 
-function ns.Decide(item)
+---------------------------------------------------------------------------
+-- Active quest objectives, for non-quest items needed to finish a quest
+---------------------------------------------------------------------------
+
+local questItems
+
+local function objectiveItemName(text)
+	if type(text) ~= "string" or (issecretvalue and issecretvalue(text)) then return end
+	local name = text:gsub("%s*:%s*%d+/%d+%s*$", "")
+	name = name:gsub("%s*%(%d+/%d+%)%s*$", "")
+	name = name:gsub("^%d+/%d+%s+", "")
+	name = name:gsub("%s+%d+/%d+$", "")
+	name = strtrim(name):lower()
+	if name ~= "" then return name end
+end
+
+local function readQuestItems()
+	questItems = {}
+	if not (C_QuestLog and C_QuestLog.GetNumQuestLogEntries and C_QuestLog.GetInfo
+		and C_QuestLog.GetQuestObjectives) then return end
+	local count = C_QuestLog.GetNumQuestLogEntries()
+	for index = 1, count do
+		local info = C_QuestLog.GetInfo(index)
+		if info and not info.isHeader and not info.isHidden and info.questID and info.questID ~= 0 then
+			local objectives = C_QuestLog.GetQuestObjectives(info.questID)
+			for _, obj in ipairs(objectives or {}) do
+				if obj.type == "item" then
+					local req = tonumber(obj.numRequired) or 0
+					local ful = tonumber(obj.numFulfilled) or 0
+					local key = objectiveItemName(obj.text)
+					if key then
+						local needed = req > 0 and req or 1
+						local unfinished = not obj.finished and (req == 0 or ful < req)
+						local prev = questItems[key]
+						if prev then
+							prev.quests = prev.quests + 1
+							prev.required = prev.required + needed
+							if ful > prev.fulfilled then prev.fulfilled = ful end
+							if unfinished then prev.anyUnfinished = true end
+						else
+							questItems[key] = {
+								title = info.title or "quest",
+								quests = 1,
+								required = needed,
+								fulfilled = ful,
+								anyUnfinished = unfinished,
+							}
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+ns.On("QUEST_LOG_UPDATE", function() questItems = nil end)
+ns.On("BAG_UPDATE_DELAYED", function() questItems = nil end)
+ns.On("PLAYER_ENTERING_WORLD", function() questItems = nil end)
+
+-- If active quests still need item `name` (with optional `itemID` for bag count), returns
+-- (label, remaining, fulfilled, required, questCount).
+function ns.NeededForQuest(name, itemID)
+	if type(name) ~= "string" or name == "" then return end
+	if issecretvalue and issecretvalue(name) then return end
+	if not questItems then readQuestItems() end
+	local entry = questItems[strtrim(name):lower()]
+	if not entry then return end
+	if entry.quests == 1 and not entry.anyUnfinished then return end
+	local have = entry.fulfilled
+	if itemID and C_Item and C_Item.GetItemCount then
+		have = math.max(have, C_Item.GetItemCount(itemID) or 0)
+	end
+	local remaining = entry.required - have
+	if remaining > 0 then
+		local label = entry.quests > 1 and (entry.quests .. " quests") or entry.title
+		return label, remaining, have, entry.required, entry.quests
+	end
+end
+
+function ns.Decide(item, questTaken)
 	local db = ns.db
 	if item.kind == "money" then return true, "money" end
 	if item.kind == "none" then return false, "nothing to pick up" end
@@ -207,7 +286,22 @@ function ns.Decide(item)
 
 	if item.itemID and db.always[item.itemID] then return true, "on your always list" end
 	if item.itemID and db.never[item.itemID] then return false, "on your never list" end
-	if item.isQuest and db.quest == "always" then return true, "quest item" end
+	if db.quest == "always" then
+		if item.isQuest then return true, "quest item" end
+		if item.name then
+			local label, remaining, fulfilled, required, quests = ns.NeededForQuest(item.name, item.itemID)
+			if label then
+				local key = strtrim(item.name):lower()
+				local taken = questTaken and questTaken[key] or 0
+				if remaining > taken then
+					if questTaken then questTaken[key] = taken + (item.count or 1) end
+					local progress = required > 0 and (" (" .. fulfilled .. "/" .. required .. ")") or ""
+					local prefix = (quests and quests > 1) and "needed for " or "needed for quest: "
+					return true, prefix .. label .. progress
+				end
+			end
+		end
+	end
 	if db.appearances and ns.UncollectedAppearance(item.link) then
 		return true, "appearance you haven't collected"
 	end

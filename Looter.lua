@@ -14,7 +14,7 @@ local session
 -- sort by the value of what actually dropped (each * count), including Uncommon+ items.
 local function sortOrder(entry)
 	local item = entry.item
-	if item.kind == "money" or item.kind == "currency" or item.isQuest
+	if item.kind == "money" or item.kind == "currency" or item.isQuest or entry.questNeeded
 		or (item.itemID and ns.db.always[item.itemID]) then
 		return 2, math.huge
 	end
@@ -202,14 +202,17 @@ local function processLoot(current, allowDefer)
 	end
 
 	local take, left = {}, {}
+	local questTaken = {}
 	for slot = 1, GetNumLootItems() do
 		local item = ns.SlotItem(slot)
 		if item.kind ~= "none" and not item.locked then
-			local wanted, value, priceName
+			local wanted, reason, value, priceName
+			local questNeeded = false
 			if takeAll or (gathering and isBeastSlot(slot)) then
 				wanted = true
 			else
-				wanted, _, value, priceName = ns.Decide(item)
+				wanted, reason, value, priceName = ns.Decide(item, questTaken)
+				questNeeded = wanted and type(reason) == "string" and reason:sub(1, 11) == "needed for "
 			end
 			local droppedValue
 			if value then
@@ -220,7 +223,10 @@ local function processLoot(current, allowDefer)
 					droppedValue = value * (item.count or 1)
 				end
 			end
-			local entry = { slot = slot, item = item, value = value, droppedValue = droppedValue, priceName = priceName }
+			local entry = {
+				slot = slot, item = item, value = value, droppedValue = droppedValue,
+				priceName = priceName, questNeeded = questNeeded,
+			}
 			table.insert(wanted and take or left, entry)
 		end
 	end

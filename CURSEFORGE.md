@@ -74,11 +74,11 @@ This addon was made with AI.
 
 ## B. Upload File form
 
-**File:** `dist\PickUpFilter-1.7.2.zip`
+**File:** `dist\PickUpFilter-1.7.3.zip`
 
 **Display name**
 ```
-PickUp Filter 1.7.2
+PickUp Filter 1.7.3
 ```
 
 **Release type:** `Release`
@@ -87,6 +87,9 @@ PickUp Filter 1.7.2
 
 **Changelog** (paste only the newest part; paste older parts too if they never went up)
 ```markdown
+1.7.3
+- **Quest items: Always pick up** now also picks up regular items needed to finish an active quest objective (like Okra for Westfall Stew), sums the required amount when multiple active quests need the same item, and stops once you have enough.
+
 1.7.2
 - Fixed: **Always pick up appearances you haven't collected** no longer picks up gear whose appearance your account already collected from another item when your current character can't equip that weapon or armor type.
 

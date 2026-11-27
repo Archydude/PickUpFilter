@@ -66,7 +66,7 @@ TSM and Auctionator count only while they're loaded. The options page says which
 
 | Rule | Choices | Default |
 |---|---|---|
-| Quest items | Always pick up, or follow the quality rules | Always pick up |
+| Quest items | Always pick up (including regular items still needed for an active quest objective, until you have enough), or follow the quality rules | Always pick up |
 | Crafting reagents | Follow the quality rules, always pick up all crafting reagents, or always pick up only the ones your character's professions craft with (with checkboxes to leave any profession out, such as Cooking) | Follow the quality rules |
 | Currencies | Always pick up, or leave behind | Always pick up |
 | Items with no price | Pick up, or leave behind (for Check value) | Pick up |
